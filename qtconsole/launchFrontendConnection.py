@@ -27,7 +27,8 @@ class MyJupyterQtConsoleAppInProgress(JupyterApp, JupyterConsoleApp):
             connection_file=connection_file,
             #config=self.config,
         )
-        kernel_client.load_connection_file()
+        kernel_client.load_connection_file('/home/jfricou/.local/share/jupyter/runtime/kernel-' +
+            '66865' + '.json')
         kernel_client.start_channels()
         widget = self.widget_factory(local_kernel=False) #, config=self.config)
                                      
