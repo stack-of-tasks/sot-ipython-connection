@@ -9,10 +9,5 @@ def main():
     )
     launch_new_instance(user_ns=namespace)
 
-    # 2nd try (successful):
-    # ~/.ipython/profile_default/startup/init_lsst.py will be
-    # executed during IPython setup
-    #launch_new_instance() 
-
 if __name__ == "__main__" :
     main()
