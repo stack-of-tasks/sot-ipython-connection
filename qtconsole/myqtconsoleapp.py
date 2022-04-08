@@ -219,7 +219,8 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
             connection_file=connection_file,
             config=self.config,
         )
-        kernel_client.load_connection_file()
+        kernel_client.load_connection_file('/home/jfricou/.local/share/jupyter/runtime/kernel-' +
+            '66865' + '.json')
         kernel_client.start_channels()
         widget = self.widget_factory(config=self.config,
                                      local_kernel=False)
@@ -244,7 +245,8 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
                                 connection_file=current_widget.kernel_client.connection_file,
                                 config = self.config,
         )
-        kernel_client.load_connection_file()
+        kernel_client.load_connection_file('/home/jfricou/.local/share/jupyter/runtime/kernel-' +
+            '66865' + '.json')
         kernel_client.start_channels()
         widget = self.widget_factory(config=self.config,
                                 local_kernel=False)
@@ -268,17 +270,17 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
     def init_qt_elements(self):
         # Create the widget.
 
-        base_path = os.path.abspath(os.path.dirname(__file__))
+        """ base_path = os.path.abspath(os.path.dirname(__file__))
         icon_path = os.path.join(base_path, 'resources', 'icon', 'JupyterConsole.svg')
         self.app.icon = QtGui.QIcon(icon_path)
-        QtWidgets.QApplication.setWindowIcon(self.app.icon)
+        QtWidgets.QApplication.setWindowIcon(self.app.icon) """
 
         ip = self.ip
         local_kernel = (not self.existing) or is_local_ip(ip)
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
         self.init_colors(self.widget)
-        self.widget._existing = self.existing
+        self.widget._existing = True#self.existing
         self.widget._may_close = not self.existing
         self.widget._confirm_exit = self.confirm_exit
         self.widget._display_banner = self.display_banner
