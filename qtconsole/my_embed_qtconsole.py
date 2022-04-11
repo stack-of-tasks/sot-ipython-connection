@@ -28,15 +28,16 @@ def make_jupyter_widget_with_kernel():
 
     # Using code in qtconsoleapp.py (new_frontend_connection function) and in
     # embed_qtconsole.py
-    # TODO: see what's in QtKernelClient
     kernel_client = QtKernelClient()#connection_file=connection_file, config=self.config)
     kernel_client.load_connection_file('/home/jfricou/.local/share/jupyter/runtime/kernel-' +
-        '10657' + '.json') # Opens the given connection file and stores it
+        '32675' + '.json') # Opens the given connection file and stores it
     kernel_client.start_channels()
 
-    # Pistes:
-    # fonctions input, execute et _async_execute_interactive dans jupyter_client/client.py
-    #execute_interactive = run_sync(KernelClient._async_execute_interactive)
+    # TODO: make this work
+    # execute_interactive = run_sync(KernelClient._async_execute_interactive)
+    # execute_interactive(KernelClient, "b")
+
+    # TODO: see what's in BaseFrontendMixin (base_frontend_mixin.py)
 
     jupyter_widget = RichJupyterWidget()
     jupyter_widget.kernel_client = kernel_client
