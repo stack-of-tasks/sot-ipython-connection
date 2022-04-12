@@ -34,12 +34,7 @@ def make_jupyter_widget_with_kernel():
         '/kernel-' + '19983' + '.json')
     kernel_client.start_channels()
 
-    # TODO: make this work
-    # execute_interactive = run_sync(KernelClient._async_execute_interactive)
-    # execute_interactive(KernelClient, "b")
-
-    # TODO: see what's in BaseFrontendMixin and QtKernelClientMixin (base_frontend_mixin.py)
-    # TODO: try to use this code in myqtconsoleapp
+    kernel_client.execute("test = 888", silent=False)
 
     jupyter_widget = RichJupyterWidget()
     jupyter_widget.kernel_client = kernel_client
