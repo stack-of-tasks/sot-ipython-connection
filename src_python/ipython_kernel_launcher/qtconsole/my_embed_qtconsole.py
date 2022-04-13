@@ -53,7 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     app = QtWidgets.QApplication.instance() 
     if not app:
-        app = QtWidgets.QApplication([])
+        app = QtWidgets.QApplication(["test"])
 
     # TODO: replace MainWindow with a custom class inheriting from
     # QWidget: https://www.riverbankcomputing.com/static/Docs/PyQt4/qwidget.html
@@ -71,5 +71,7 @@ if __name__ == "__main__":
     # kernel: _event_filter_console_keypress in console_widget.py
     if len(sys.argv) > 2:
         window.jupyter_widget.kernel_client.execute(sys.argv[2], silent=False)
+
+
 
     sys.exit(app.exec_()) # Main loop
