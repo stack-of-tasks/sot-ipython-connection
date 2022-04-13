@@ -12,8 +12,6 @@ from PyQt5 import QtWidgets
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.client import QtKernelClient
-from jupyter_client import KernelClient
-from jupyter_client.utils import run_sync
 import nest_asyncio
 import jupyter_core
 
@@ -30,13 +28,13 @@ def make_jupyter_widget_with_kernel():
     """
 
     kernel_client = QtKernelClient()
+    if len(sys.argv) == 1:
+        exit()
     kernel_client.load_connection_file(jupyter_core.paths.jupyter_runtime_dir() +
-        '/kernel-' + '19983' + '.json')
+        '/kernel-' + sys.argv[1] + '.json')
     kernel_client.start_channels()
 
-    kernel_client.execute("test = 888", silent=False)
-
-    jupyter_widget = RichJupyterWidget()
+    jupyter_widget = RichJupyterWidget() # TODO: see how it handles input / output
     jupyter_widget.kernel_client = kernel_client
     return jupyter_widget
 
@@ -53,8 +51,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.jupyter_widget.kernel_manager.shutdown_kernel()
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication.instance() 
+    if not app:
+        app = QtWidgets.QApplication([])
+
+    # TODO: replace MainWindow with a custom class inheriting from
+    # QWidget: https://www.riverbankcomputing.com/static/Docs/PyQt4/qwidget.html
+    # https://courspython.com/interfaces-pyqt4.html
     window = MainWindow()
     window.show()
+
     app.aboutToQuit.connect(window.shutdown_kernel)
-    sys.exit(app.exec_())
+
+    # TODO:
+    """ QtWidgets.QApplication.sendEvent(self._text_edit, event) """
+
+    # TODO:
+    # see if _append_plain_text is called when data is received from the
+    # kernel: _event_filter_console_keypress in console_widget.py
+    if len(sys.argv) > 2:
+        window.jupyter_widget.kernel_client.execute(sys.argv[2], silent=False)
+
+    sys.exit(app.exec_()) # Main loop
