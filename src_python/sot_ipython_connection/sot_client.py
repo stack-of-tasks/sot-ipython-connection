@@ -27,8 +27,8 @@ class SOTClient(QtKernelClient):
 
     def run_python_command(self, cmd):
         result = self.execute(cmd)
-        # TODO: return stderr, stdout, result à l'envers, les save avec
-        # la cmd dans une var / liste pour un historique : SOTClientOut
+        # TODO: return un SOTClientOut, le save dans une liste pour faire
+        # un historique
 
     def run_python_script(self, filepath):
         self.run_python_command("%run " + str(filepath))
