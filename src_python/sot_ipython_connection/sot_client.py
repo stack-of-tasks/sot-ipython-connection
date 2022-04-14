@@ -15,18 +15,18 @@ class SOTClientOut:
     stdout = None
     stderr = None
 
-def getLatestFile(path: Path, pattern: str = "*"): # TODO
-    files = path.glob(pattern)
+def get_latest_connection_file_path():
+    directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
+    files = directory_path.glob("*")
     return max(files, key=lambda x: x.stat().st_ctime)
 
 class SOTClient(QtKernelClient):
-    def __init__(self, kernel_number):
-        self.load_connection_file(jupyter_core.paths.jupyter_runtime_dir() +
-            '/kernel-' + kernel_number + '.json')
+    def __init__(self):
+        self.load_connection_file(get_latest_connection_file_path())
         self.start_channels()
 
     def run_python_command(self, cmd):
-        self.execute(cmd, silent=False)
+        result = self.execute(cmd)
         # TODO: return stderr, stdout, result à l'envers, les save avec
         # la cmd dans une var / liste pour un historique : SOTClientOut
 
@@ -37,15 +37,15 @@ class SOTClient(QtKernelClient):
         self.stop_channels()
 
 
-def main(kernel_number, cmd1):
+def main(cmd1):
     app = QtWidgets.QApplication.instance() 
     if not app:
         app = QtWidgets.QApplication(["test"])
 
-    kernel_client = SOTClient(kernel_number)
-    kernel_client.execute(cmd1, silent=False)
+    kernel_client = SOTClient()
+    kernel_client.run_python_command(cmd1)
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) == 3
-    main(sys.argv[1], sys.argv[2])
+    assert len(sys.argv) == 2
+    main(sys.argv[1])
