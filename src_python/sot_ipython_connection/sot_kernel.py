@@ -3,7 +3,7 @@ import sys
 from ipykernel.kernelapp import launch_new_instance
 
 def main():
-
+    
     # Importing the connection configuration (../connectionConfig)
     scriptDirectory = os.path.dirname(__file__)
     moduleDirectory = os.path.join(scriptDirectory, '..')
@@ -31,6 +31,7 @@ def main():
         transport = connectionConfig["transport"],
         signature_scheme = connectionConfig["signature_scheme"]
     )
+
 
 if __name__ == "__main__" :
     main()
