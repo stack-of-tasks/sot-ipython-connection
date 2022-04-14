@@ -1,13 +1,11 @@
-
-import sys
-
 from pathlib import Path
 import nest_asyncio
 import jupyter_core
-from PyQt5 import QtWidgets
 from qtconsole.client import QtKernelClient
 
+
 nest_asyncio.apply()
+
 
 def get_latest_connection_file_path():
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
@@ -37,20 +35,3 @@ class SOTClient(QtKernelClient):
 
     def __del__(self):
         self.stop_channels()
-
-
-def main(scripts_paths):
-    app = QtWidgets.QApplication.instance() 
-    if not app:
-        app = QtWidgets.QApplication([])
-
-    kernel_client = SOTClient()
-
-    # Running every script
-    for path in scripts_paths:
-        kernel_client.run_python_script(path)
-
-
-if __name__ == "__main__":
-    assert len(sys.argv) > 1
-    main(sys.argv[1:])
