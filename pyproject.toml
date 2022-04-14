@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ipythonLauncher"
+name = "sot_ipython_connection"
 version = "0.1.0"
 description = ""
 authors = ["JustineFricou <justine.fricou@gmail.com>"]

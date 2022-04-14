@@ -1,4 +1,4 @@
-# ipythonLauncher
+# sot_ipython_connection
 
 ## Usage
 

@@ -3,7 +3,7 @@
 from pathlib import Path
 from setuptools import setup
 
-PACKAGE_NAME = "ipythonLauncher"
+PACKAGE_NAME = "sot_ipython_connection"
 
 setup(
     name=PACKAGE_NAME,
