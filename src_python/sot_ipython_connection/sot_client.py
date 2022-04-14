@@ -9,16 +9,18 @@ from qtconsole.client import QtKernelClient
 
 nest_asyncio.apply()
 
+def get_latest_connection_file_path():
+    directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
+    files = directory_path.glob("*")
+    return max(files, key=lambda x: x.stat().st_ctime)
+
+
 class SOTClientOut:
     cmd = None
     result = None
     stdout = None
     stderr = None
 
-def get_latest_connection_file_path():
-    directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
-    files = directory_path.glob("*")
-    return max(files, key=lambda x: x.stat().st_ctime)
 
 class SOTClient(QtKernelClient):
     def __init__(self):
@@ -37,15 +39,18 @@ class SOTClient(QtKernelClient):
         self.stop_channels()
 
 
-def main(cmd1):
+def main(scripts_paths):
     app = QtWidgets.QApplication.instance() 
     if not app:
-        app = QtWidgets.QApplication(["test"])
+        app = QtWidgets.QApplication([])
 
     kernel_client = SOTClient()
-    kernel_client.run_python_command(cmd1)
+
+    # Running every script
+    for path in scripts_paths:
+        kernel_client.run_python_script(path)
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) == 2
-    main(sys.argv[1])
+    assert len(sys.argv) > 1
+    main(sys.argv[1:])
