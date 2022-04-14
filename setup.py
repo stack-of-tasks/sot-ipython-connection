@@ -3,7 +3,7 @@
 from pathlib import Path
 from setuptools import setup
 
-PACKAGE_NAME = "ipython_kernel_launcher"
+PACKAGE_NAME = "ipythonLauncher"
 
 setup(
     name=PACKAGE_NAME,

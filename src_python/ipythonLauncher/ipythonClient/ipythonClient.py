@@ -2,8 +2,8 @@
 import sys
 from qtconsole.client import QtKernelClient
 import jupyter_core
-# import nest_asyncio
-# nest_asyncio.apply()
+import nest_asyncio
+
 
 class KernelClient:
     def __init__(self, kernel_number):
@@ -17,8 +17,8 @@ class KernelClient:
     def run_python_command(self, cmd):
         self.kernel_client.execute(cmd, silent=False)
 
-    def __del__(self):
-        self.kernel_client.stop_channels()
+    #def __del__(self):
+        # self.kernel_client.stop_channels()
 
 
 def main(kernel_number, cmd):
@@ -27,4 +27,5 @@ def main(kernel_number, cmd):
 
 if __name__ == "__main__":
     assert len(sys.argv) == 3
+    nest_asyncio.apply()
     main(sys.argv[1], sys.argv[2])

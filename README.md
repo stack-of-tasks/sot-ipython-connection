@@ -1,4 +1,4 @@
-# ipython_kernel_launcher
+# ipythonLauncher
 
 ## Usage
 
