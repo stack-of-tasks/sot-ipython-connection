@@ -34,12 +34,3 @@ class SOTKernel:
             transport = self.connectionConfig["transport"],
             signature_scheme = self.connectionConfig["signature_scheme"]
         )
-
-
-def main():
-    kernel = SOTKernel()
-    kernel.run()
-    
-
-if __name__ == "__main__" :
-    main()
