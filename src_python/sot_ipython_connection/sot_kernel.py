@@ -5,7 +5,6 @@ from ipykernel.kernelapp import launch_new_instance
 
 class SOTKernel:
     def __init__(self):
-        # TODO: use Path
         # Importing the connection and namespace configurations
         scriptDirectory = os.path.dirname(__file__)
         moduleDirectory = os.path.join(scriptDirectory, '..')
