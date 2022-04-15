@@ -8,6 +8,7 @@ moduleDirectory = os.path.join(scriptDirectory, '..')
 sys.path.append(moduleDirectory)
 from sot_client import SOTClient
 
+
 def main():
     # TODO: launch the qt client
     app = QtWidgets.QApplication.instance() 
@@ -15,7 +16,7 @@ def main():
         app = QtWidgets.QApplication([])
 
     kernel_client = SOTClient()
-    kernel_client.run_python_command("op = 4")
+    kernel_client.run_python_command("a + b")
 
 
 if __name__ == "__main__":
