@@ -2,21 +2,28 @@ import os
 import sys
 from ipykernel.kernelapp import launch_new_instance
 
+
+class SOTKernel:
+    def __init__(self):
+        ...
+
+
 def main():
     
-    # Importing the connection configuration (../connectionConfig)
+    # TODO: use Path
+    # Importing the connection and namespace configurations
     scriptDirectory = os.path.dirname(__file__)
     moduleDirectory = os.path.join(scriptDirectory, '..')
     sys.path.append(moduleDirectory)
     import connection_config
+    import kernel_namespace_config
+
+    # The kernel's connection info (ports, ip...)
     connectionConfig = connection_config.config
 
-    # The IPython kernel's user namespace will be initialized with the
+    # The kernel's user namespace will be initialized with the
     # variables contained in this dictionary:
-    namespace = dict(
-        a = 0,
-        b = 54
-    )
+    namespace = kernel_namespace_config.kernel_namespace
 
     # List of the kernel's options:
     # https://ipython.readthedocs.io/en/7.23.0/config/options/kernel.html
