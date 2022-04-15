@@ -4,6 +4,8 @@ import nest_asyncio
 import jupyter_core
 from jupyter_client import BlockingKernelClient
 
+from jupyter_client.session import Session
+
 
 nest_asyncio.apply()
 
@@ -31,6 +33,9 @@ class SOTCommandInfo:
 
 class SOTClient(BlockingKernelClient):
     def __init__(self):
+
+        self.session_id = None
+
         # List of SOTCommandInfo: history of every received response
         # (triggered by a command from this client or another)
         self.cmd_history = []
@@ -39,14 +44,15 @@ class SOTClient(BlockingKernelClient):
         self.load_connection_file(get_latest_connection_file_path())
         self.start_channels()
 
+        #print(self.session)
+
 
     def is_response_to_self(self, response):
         """ Is the given response responding to a request sent by this
             client ?
         """
-        return True
-        # TODO: see if the session's id can be retreived
-        # and compare it to the one in the parent_header
+        if self.session_id == response["parent_header"]["session"]:
+            return True
 
 
     def get_self_history(self):
@@ -57,7 +63,8 @@ class SOTClient(BlockingKernelClient):
 
 
     def save_command_info(self, response):
-        ...
+        ... # TODO
+        # https://www.adamsmith.haus/python/docs/jupyter_client.client.KernelClient.history
 
 
     def run_python_command(self, cmd):
@@ -76,6 +83,13 @@ class SOTClient(BlockingKernelClient):
                 # iopub is the channel where the kernel broadcasts side-effects
                 # (stderr, stdout, debugging events, its status: busy or idle, etc)
                 response = self.get_iopub_msg()
+
+                # Setting the client's session_id if needed:
+                if self.session_id == None and \
+                    response["parent_header"]["msg_id"] == msg_id:
+                    self.session_id = response["parent_header"]["session"]
+                # TODO: see if the session's id can be retreived
+                # and compare it to the one in the parent_header
                 
                 # Printing the response if it's responding to OUR command
                 if self.is_response_to_self(response):
@@ -92,6 +106,8 @@ class SOTClient(BlockingKernelClient):
                 if response["content"]["execution_state"] == "idle" \
                     and response["parent_header"]["msg_id"] == msg_id:
                     whole_response_received = True
+                # TODO: use self.is_response_to_self if the session's id can
+                # be retreived during initialization
             except:
                 ...
 
