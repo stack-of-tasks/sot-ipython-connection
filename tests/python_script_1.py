@@ -1,2 +1,2 @@
-testVar = 1
-testVar2 = 2
+testVar = 10
+testVar2 = 20

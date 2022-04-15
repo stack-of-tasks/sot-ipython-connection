@@ -26,7 +26,12 @@ class SOTClient(QtKernelClient):
         self.start_channels()
 
     def run_python_command(self, cmd):
-        result = self.execute(cmd)
+        msg_id = self.execute(cmd)
+        # TODO: see message_received
+        #response = self.shell_channel.message_received
+        #print(response)
+        """ response = self.get_shell_msg(msg_id)
+        print(response) """
         # TODO: return un SOTClientOut, le save dans une liste pour faire
         # un historique
 

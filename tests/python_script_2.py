@@ -1,2 +1,2 @@
-testVar3 = 3
-testVar2 = 4
+testVar2 = 40
+testVar3 = 30
