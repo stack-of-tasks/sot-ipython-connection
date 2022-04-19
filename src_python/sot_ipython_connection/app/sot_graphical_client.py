@@ -16,7 +16,10 @@ def main():
         app = QtWidgets.QApplication([])
 
     kernel_client = SOTClient()
-    kernel_client.run_python_command("a + b")
+    kernel_client.run_python_command("aaa")
+    kernel_client.run_python_command("b")
+    print()
+    kernel_client.show_history()
 
 
 if __name__ == "__main__":

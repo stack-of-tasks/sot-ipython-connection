@@ -7,14 +7,6 @@ from jupyter_client import BlockingKernelClient
 from jupyter_client.session import Session
 
 
-nest_asyncio.apply()
-
-
-def get_latest_connection_file_path():
-    directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
-    files = directory_path.glob("*")
-    return max(files, key=lambda x: x.stat().st_ctime)
-
 """ Documentation on messaging with jupyter:
     https://jupyter-client.readthedocs.io/en/latest/messaging.html#messaging-in-jupyter
 
@@ -23,55 +15,116 @@ def get_latest_connection_file_path():
 """
 
 
+nest_asyncio.apply()
+
+
+def get_latest_connection_file_path():
+    directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
+    files = directory_path.glob("*")
+    return max(files, key=lambda x: x.stat().st_ctime)
+
+
 class SOTCommandInfo:
-    session = None # To know which client has sent the command
-    cmd = None
-    result = None
-    stdout = None
-    stderr = None
+    def __init__(self):
+        self.session_id = None # To know which client has sent the command
+        self.id = None
+        self.content = None
+        self.stdout = None
+        self.stderr = None # {traceback, ename, evalue}
 
 
 class SOTClient(BlockingKernelClient):
     def __init__(self):
-
         self.session_id = None
 
-        # List of SOTCommandInfo: history of every received response
-        # (triggered by a command from this client or another)
+        # List of SOTCommandInfo: history of this session's commands and their responses
         self.cmd_history = []
+        """ TODO: the get_iopub_msg() call used in this program returns responses to
+            every client (session) connected to the kernel.
+            To store a history of every session's commands, we should listen to the kernel's
+            iopub channel in another thread and save the commands with the method currently 
+            used, as self.save_command_info() already saves the command's session id (which
+            allows to differentiate every client), although self.session_id is currently set
+            when reading the kernel's responses, which is not optimal. Instead, it should be
+            set in the SOTClient's __init__ function.
+            self.is_response_to_self and self.get_self_history currently have no use, as
+            self.cmd_history only store this session's commands.
+        """
 
         # Setting up and starting the communication with the kernel
         self.load_connection_file(get_latest_connection_file_path())
         self.start_channels()
 
-        #print(self.session)
-
 
     def is_response_to_self(self, response):
         """ Is the given response responding to a request sent by this
-            client ?
+            session?
         """
         if self.session_id == response["parent_header"]["session"]:
             return True
 
 
+    def save_command_info(self, response):
+        # Creating the command if it's its first response
+        cmd = self.get_cmd_by_id(response["parent_header"]["msg_id"])
+        is_new_cmd = False
+
+        if cmd == None:
+            is_new_cmd = True
+            cmd = SOTCommandInfo()
+            cmd.session_id = response["parent_header"]["session"]
+            cmd.id = response["parent_header"]["msg_id"]
+        
+        # Saving the command's content
+        if response["msg_type"] == "execute_input":
+            cmd.content = response["content"]["code"]
+
+        # Saving the command's output if applicable
+        if response["msg_type"] == "execute_result":
+            cmd.stdout = response["content"]["data"]["text/plain"]
+
+        # Saving the command's error if applicable
+        if response["msg_type"] == "error":
+            cmd.stderr = response["content"]
+
+        if is_new_cmd:
+            self.cmd_history.append(cmd)
+
+
+    def get_cmd_by_id(self, id):
+        for cmd in reversed(self.cmd_history):
+            if cmd.id == id:
+                return cmd
+        return None
+
+
+    def show_history(self):
+        for cmd in self.cmd_history:
+            print("session_id:", cmd.session_id)
+            print("id:", cmd.id)
+            print("content:", cmd.content)
+            print("stdout:", cmd.stdout)
+            print("stderr:", cmd.stderr)
+            print()
+
+
     def get_self_history(self):
         """ Returns a filtered copy of self.cmd_history by keeping
-            only the commands that were sent by this client
+            only the commands that were sent by this session
         """
-        ... # TODO -> use self.is_response_to_self()
-
-
-    def save_command_info(self, response):
-        ... # TODO
-        # https://www.adamsmith.haus/python/docs/jupyter_client.client.KernelClient.history
+        ...
+        """ TODO
+            -> could be useful in the future if self.cmd_history stores every client's
+               commands
+            -> use self.is_response_to_self()
+        """
 
 
     def run_python_command(self, cmd):
         """ This is a blocking function that sends a command to the
             kernel and waits for it to respond completely (see link
-            to the doc on messaging with jupyter for the steps),
-            while saving every response it gets to self.cmd_history
+            to the doc on messaging with jupyter for every step),
+            while saving the response to self.cmd_history
         """
 
         # Sending the command to the kernel
@@ -82,33 +135,32 @@ class SOTClient(BlockingKernelClient):
             try:
                 # iopub is the channel where the kernel broadcasts side-effects
                 # (stderr, stdout, debugging events, its status: busy or idle, etc)
+                # to every client connected to it
                 response = self.get_iopub_msg()
 
                 # Setting the client's session_id if needed:
                 if self.session_id == None and \
                     response["parent_header"]["msg_id"] == msg_id:
                     self.session_id = response["parent_header"]["session"]
-                # TODO: see if the session's id can be retreived
-                # and compare it to the one in the parent_header
-                
-                # Printing the response if it's responding to OUR command
-                if self.is_response_to_self(response):
-                    print(response)
-                    print()
+                """ TODO: if the session's id can be retrieved through attributes
+                    or methods, set self.session_id in the init function
+                """
 
-                # Saving the response to the command history
-                self.save_command_info(response)
+                # Saving the response to the command history only if it responds
+                # to our command
+                if response["parent_header"]["msg_id"] == msg_id:
+                    self.save_command_info(response)
 
                 # We can stop listening to the kernel's responses if it
                 # changes its status to 'idle' in response to OUR command.
-                # (parent_header is the header of the message the kernel is
-                # responding to)
                 if response["content"]["execution_state"] == "idle" \
                     and response["parent_header"]["msg_id"] == msg_id:
                     whole_response_received = True
-                # TODO: use self.is_response_to_self if the session's id can
-                # be retreived during initialization
-            except:
+                """ TODO: use self.is_response_to_self if the session's id can
+                    be retrieved during initialization
+                """
+
+            except: # Entered when there is no more reponses to get
                 ...
 
 
