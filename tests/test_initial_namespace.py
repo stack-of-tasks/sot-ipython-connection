@@ -6,11 +6,10 @@ from PyQt5 import QtWidgets
 scriptDirectory = os.path.dirname(__file__)
 moduleDirectory = os.path.join(scriptDirectory, '..')
 sys.path.append(moduleDirectory)
-from src_python.sot_ipython_connection.app.sot_interpreter import main as launch_kernel
 from src_python.sot_ipython_connection.sot_client import SOTClient
 
 class TestInitialNamespace:
-    """ These tests must be run after launching a kernel
+    """ These tests must be run after launching a new kernel
     """
 
     def test_namespace(self):
@@ -19,10 +18,10 @@ class TestInitialNamespace:
             app = QtWidgets.QApplication([])
 
         kernel_client = SOTClient()
-        kernel_client.run_python_command("a")
-        kernel_client.run_python_command("b")
-        kernel_client.run_python_command("a + b")
-        kernel_client.run_python_command("c")
+        kernel_client.run_python_command("initial_namespace_1")
+        kernel_client.run_python_command("initial_namespace_2")
+        kernel_client.run_python_command("initial_namespace_1 + initial_namespace_2")
+        kernel_client.run_python_command("initial_namespace_3")
 
         assert len(kernel_client.cmd_history) == 4
 

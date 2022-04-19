@@ -1,4 +1,4 @@
 kernel_namespace = dict(
-    a = 46,
-    b = 54
+    initial_namespace_1 = 46,
+    initial_namespace_2 = 54
 )
