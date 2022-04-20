@@ -1,6 +1,5 @@
 import os
 import sys
-import unittest
 
 from PyQt5 import QtWidgets
 
@@ -10,7 +9,7 @@ sys.path.append(moduleDirectory)
 from src_python.sot_ipython_connection.sot_client import SOTClient
 from src_python.sot_ipython_connection.app.sot_script_executer import main as script_executer
 
-class TestScriptExecuter(unittest.TestCase):
+class TestScriptExecuter:
     """ These tests must be run after launching a new kernel
     """
     
