@@ -29,10 +29,12 @@ class TestScriptExecuter:
         kernel_client.run_python_command("script_var_2")
 
         assert len(kernel_client.cmd_history) == 2
-        assert kernel_client.cmd_history[0].stdout == "1"
+
         assert kernel_client.cmd_history[0].stderr == None
-        assert kernel_client.cmd_history[1].stdout == "2"
         assert kernel_client.cmd_history[1].stderr == None
+
+        assert kernel_client.cmd_history[0].stdout == "1"
+        assert kernel_client.cmd_history[1].stdout == "2"
 
 
     def test_multiple_scripts_var_definition(self):
@@ -44,10 +46,12 @@ class TestScriptExecuter:
         kernel_client.run_python_command("script_var_4")
 
         assert len(kernel_client.cmd_history) == 2
-        assert kernel_client.cmd_history[0].stdout == "3"
+
         assert kernel_client.cmd_history[0].stderr == None
-        assert kernel_client.cmd_history[1].stdout == "4"
         assert kernel_client.cmd_history[1].stderr == None
+
+        assert kernel_client.cmd_history[0].stdout == "3"
+        assert kernel_client.cmd_history[1].stdout == "4"
 
 
     def test_multiple_scripts_var_redefinition(self):
@@ -59,7 +63,9 @@ class TestScriptExecuter:
         kernel_client.run_python_command("script_var_6")
 
         assert len(kernel_client.cmd_history) == 2
-        assert kernel_client.cmd_history[0].stdout == "55"
+
         assert kernel_client.cmd_history[0].stderr == None
-        assert kernel_client.cmd_history[1].stdout == "6"
         assert kernel_client.cmd_history[1].stderr == None
+
+        assert kernel_client.cmd_history[0].stdout == "55"
+        assert kernel_client.cmd_history[1].stdout == "6"
