@@ -11,21 +11,21 @@ from src_python.sot_ipython_connection.sot_client import SOTClient
 class TestClientHistory:
     """ These tests must be run after launching a new kernel
     """
+    
+    @classmethod
+    def setUpClass(self):
+        app = QtWidgets.QApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication([])
+        app.setQuitOnLastWindowClosed(False)
+       
 
     def test_no_cmd(self):
-        app = QtWidgets.QApplication.instance() 
-        if not app:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
         assert len(kernel_client.cmd_history) == 0
 
 
     def test_one_cmd_successful(self):
-        app = QtWidgets.QApplication.instance() 
-        if not app:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
         kernel_client.run_python_command("1 + 1")
 
@@ -39,10 +39,6 @@ class TestClientHistory:
 
 
     def test_one_cmd_error(self):
-        app = QtWidgets.QApplication.instance() 
-        if not app:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
         kernel_client.run_python_command("unknown_variable")
 
@@ -56,10 +52,6 @@ class TestClientHistory:
         
 
     def test_several_cmd(self):
-        app = QtWidgets.QApplication.instance() 
-        if not app:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
         kernel_client.run_python_command("test_history_1 = 1")
         kernel_client.run_python_command("test_history_1")

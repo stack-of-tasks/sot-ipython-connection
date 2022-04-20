@@ -13,12 +13,16 @@ from src_python.sot_ipython_connection.app.sot_script_executer import main as sc
 class TestScriptExecuter(unittest.TestCase):
     """ These tests must be run after launching a new kernel
     """
-
-    def test_var_definition(self):
+    
+    @classmethod
+    def setUpClass(self):
         app = QtWidgets.QApplication.instance()
         if app is None:
             app = QtWidgets.QApplication([])
+        app.setQuitOnLastWindowClosed(False)
+        
 
+    def test_var_definition(self):
         kernel_client = SOTClient()
 
         script_executer([scriptDirectory + "/script_test_1.py"])
@@ -33,10 +37,6 @@ class TestScriptExecuter(unittest.TestCase):
 
 
     def test_multiple_scripts_var_definition(self):
-        app = QtWidgets.QApplication.instance()
-        if app is None:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
 
         script_executer([scriptDirectory + "/script_test_2.py",
@@ -52,10 +52,6 @@ class TestScriptExecuter(unittest.TestCase):
 
 
     def test_multiple_scripts_var_redefinition(self):
-        app = QtWidgets.QApplication.instance()
-        if app is None:
-            app = QtWidgets.QApplication([])
-
         kernel_client = SOTClient()
 
         script_executer([scriptDirectory + "/script_test_4.py",
