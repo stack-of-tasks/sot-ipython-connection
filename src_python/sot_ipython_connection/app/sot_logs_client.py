@@ -32,7 +32,10 @@ def main():
             print(response)
 
             # Saving the response to the command history
-            kernel_client.save_command_info(response)
+            cmd = kernel_client.save_command_info(response)
+
+            # Displaying the command if the kernel has finished reponding to it
+            # TODO
 
         except: # Entered when there is reponse to read
             ...

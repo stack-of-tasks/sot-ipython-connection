@@ -30,6 +30,14 @@ class SOTCommandInfo:
         self.stdout = None
         self.stderr = None # {traceback, ename, evalue}
 
+    def show_cmd(self):
+        print("session_id:", self.session_id)
+        print("id:", self.id)
+        print("content:", self.content)
+        print("stdout:", self.stdout)
+        print("stderr:", self.stderr)
+        print()
+
 
 class SOTClient(BlockingKernelClient):
     def __init__(self):
@@ -86,6 +94,8 @@ class SOTClient(BlockingKernelClient):
         if is_new_cmd:
             self.cmd_history.append(cmd)
 
+        return cmd
+
 
     def get_cmd_by_id(self, id):
         for cmd in reversed(self.cmd_history):
@@ -99,12 +109,7 @@ class SOTClient(BlockingKernelClient):
             history = self.cmd_history
 
         for cmd in history:
-            print("session_id:", cmd.session_id)
-            print("id:", cmd.id)
-            print("content:", cmd.content)
-            print("stdout:", cmd.stdout)
-            print("stderr:", cmd.stderr)
-            print()
+            cmd.show_cmd()
 
 
     def show_self_history(self):
