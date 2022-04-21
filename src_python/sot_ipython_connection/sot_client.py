@@ -35,7 +35,7 @@ class SOTCommandInfo:
 
 class SOTClient(BlockingKernelClient):
     def __init__(self):
-        self.session_id = None
+        self.session_id = self.session.session
 
         # List of SOTCommandInfo: history of this session's commands and their responses
         self.cmd_history = []
@@ -44,11 +44,9 @@ class SOTClient(BlockingKernelClient):
             To store a history of every session's commands, we should listen to the kernel's
             iopub channel in another thread and save the commands with the method currently 
             used, as self.save_command_info() already saves the command's session id (which
-            allows to differentiate every client), although self.session_id is currently set
-            when reading the kernel's responses, which is not optimal. Instead, it should be
-            set in the SOTClient's __init__ function.
-            self.is_response_to_self and self.get_self_history currently have no use, as
-            self.cmd_history only store this session's commands.
+            allows to differentiate every client)
+            self.get_self_history currently has no use, as self.cmd_history only store this
+            session's commands.
         """
 
         # Setting up and starting the communication with the kernel
@@ -138,14 +136,6 @@ class SOTClient(BlockingKernelClient):
                 # to every client connected to it
                 response = self.get_iopub_msg()
 
-                # Setting the client's session_id if needed:
-                if self.session_id == None and \
-                    response["parent_header"]["msg_id"] == msg_id:
-                    self.session_id = response["parent_header"]["session"]
-                """ TODO: if the session's id can be retrieved through attributes
-                    or methods, set self.session_id in the init function
-                """
-
                 # Saving the response to the command history only if it responds
                 # to our command
                 if response["parent_header"]["msg_id"] == msg_id:
@@ -154,11 +144,8 @@ class SOTClient(BlockingKernelClient):
                 # We can stop listening to the kernel's responses if it
                 # changes its status to 'idle' in response to OUR command.
                 if response["content"]["execution_state"] == "idle" \
-                    and response["parent_header"]["msg_id"] == msg_id:
+                    and self.is_response_to_self(response):
                     whole_response_received = True
-                """ TODO: use self.is_response_to_self if the session's id can
-                    be retrieved during initialization
-                """
 
             except: # Entered when there is no more reponses to get
                 ...
