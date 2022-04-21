@@ -75,3 +75,7 @@ class TestClientHistory:
 
     def test_several_sessions(self):
         ... # TODO
+        
+
+    def test_self_history(self):
+        ... # TODO: compare history and self history

@@ -1,10 +1,8 @@
-from operator import truediv
 from pathlib import Path
 import nest_asyncio
 import jupyter_core
 from jupyter_client import BlockingKernelClient
 
-from jupyter_client.session import Session
 
 
 """ Documentation on messaging with jupyter:
@@ -96,8 +94,11 @@ class SOTClient(BlockingKernelClient):
         return None
 
 
-    def show_history(self):
-        for cmd in self.cmd_history:
+    def show_history(self, history=None):
+        if history == None:
+            history = self.cmd_history
+
+        for cmd in history:
             print("session_id:", cmd.session_id)
             print("id:", cmd.id)
             print("content:", cmd.content)
@@ -106,16 +107,19 @@ class SOTClient(BlockingKernelClient):
             print()
 
 
+    def show_self_history(self):
+        self_history = self.get_self_history()
+        self.show_history(self_history)
+
+
     def get_self_history(self):
         """ Returns a filtered copy of self.cmd_history by keeping
             only the commands that were sent by this session
         """
-        ...
-        """ TODO
-            -> could be useful in the future if self.cmd_history stores every client's
-               commands
-            -> use self.is_response_to_self()
-        """
+        self_history = []
+        for cmd in self.cmd_history:
+            if cmd.session_id == self.session_id:
+                self_history.append(cmd)
 
 
     def run_python_command(self, cmd):
