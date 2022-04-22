@@ -1,10 +1,6 @@
 import sys
-import os
 
-scriptDirectory = os.path.dirname(__file__)
-moduleDirectory = os.path.join(scriptDirectory, '..')
-sys.path.append(moduleDirectory)
-from sot_client import SOTClient
+from sot_ipython_connection.sot_client import SOTClient
 
 
 def main(scripts_paths):
