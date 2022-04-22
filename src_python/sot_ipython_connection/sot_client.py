@@ -18,6 +18,7 @@ nest_asyncio.apply()
 def get_latest_connection_file_path():
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
     files = directory_path.glob("*")
+    # TODO: error management if there is none
     return max(files, key=lambda x: x.stat().st_ctime)
 
 
@@ -57,6 +58,17 @@ class SOTClient(BlockingKernelClient):
         # Setting up and starting the communication with the kernel
         self.load_connection_file(get_latest_connection_file_path())
         self.start_channels()
+
+
+    def is_kernel_alive(self):
+        ...
+        # TODO: listen to the kernel's heartbeat and return True if
+        # the kernel is alive
+
+
+    def reconnect_to_kernel(self):
+        ...
+        # TODO: Reconnect to the latest kernel
 
 
     def is_response_to_self(self, response):
@@ -135,6 +147,7 @@ class SOTClient(BlockingKernelClient):
 
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
+        cmd_info = None
 
         whole_response_received = False
         while not whole_response_received:
@@ -147,7 +160,7 @@ class SOTClient(BlockingKernelClient):
                 # Saving the response to the command history only if it responds
                 # to our command
                 if response["parent_header"]["msg_id"] == msg_id:
-                    self.save_command_info(response)
+                    cmd_info = self.save_command_info(response)
 
                 # We can stop listening to the kernel's responses if it
                 # changes its status to 'idle' in response to OUR command.
@@ -157,6 +170,8 @@ class SOTClient(BlockingKernelClient):
 
             except: # Entered when there is no more reponses to get
                 ...
+
+        return cmd_info
 
 
     def run_python_script(self, filepath):
