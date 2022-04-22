@@ -10,9 +10,9 @@ def main():
         app = QtWidgets.QApplication([])
 
     kernel_client = SOTClient()
-    kernel_client.run_python_command("quit")
-    kernel_client.run_python_command("b = 54")
-    print()
+    kernel_client.run_python_command("1+1")
+    kernel_client.run_python_command("dfghjk")
+    kernel_client.show_history()
 
 
 if __name__ == "__main__":

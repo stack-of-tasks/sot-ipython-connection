@@ -18,25 +18,41 @@ nest_asyncio.apply()
 def get_latest_connection_file_path():
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
     files = directory_path.glob("*")
-    # TODO: error management if there is none
+    # TODO: error management if there is no file
     return max(files, key=lambda x: x.stat().st_ctime)
 
 
 class SOTCommandInfo:
+    class SOTCommandError:
+        def __init__(self):
+            self.traceback = None
+            self.name = None
+            self.value = None
+
+
     def __init__(self):
         self.session_id = None # To know which client has sent the command
         self.id = None
         self.content = None
+        self.result = None
         self.stdout = None
-        self.stderr = None # {traceback, ename, evalue}
+        self.stderr = None # SOTCommandError
+
 
     def show_cmd(self):
-        print("session_id:", self.session_id)
-        print("id:", self.id)
-        print("content:", self.content)
-        print("stdout:", self.stdout)
-        print("stderr:", self.stderr)
-        print()
+        print("Session id:", self.session_id)
+        print("Command id:", self.id)
+        print("Command:")
+        print(self.content)
+        if self.result:
+            print("Result:")
+            print(self.result)
+        if self.stdout:
+            print("Output:")
+            print(self.stdout)
+        if self.stderr:
+            print("Error output:")
+            print(self.stderr.traceback)
 
 
 class SOTClient(BlockingKernelClient):
@@ -78,7 +94,7 @@ class SOTClient(BlockingKernelClient):
         if self.session_id == response["parent_header"]["session"]:
             return True
 
-
+    # TODO: stream is stdout, parsed text/plain is result
     def save_command_info(self, response):
         # Creating the command if it's its first response
         cmd = self.get_cmd_by_id(response["parent_header"]["msg_id"])
@@ -100,7 +116,14 @@ class SOTClient(BlockingKernelClient):
 
         # Saving the command's error if applicable
         if response["msg_type"] == "error":
-            cmd.stderr = response["content"]
+            cmd.stderr = cmd.SOTCommandError()
+            cmd.stderr.name = response["content"]["ename"]
+            cmd.stderr.value = response["content"]["evalue"]
+            # Getting the error's traceback into one single string
+            traceback = ""
+            for line in response["content"]["traceback"]:
+                traceback += (line + '\n')
+            cmd.stderr.traceback = traceback
 
         if is_new_cmd:
             self.cmd_history.append(cmd)
@@ -121,6 +144,7 @@ class SOTClient(BlockingKernelClient):
 
         for cmd in history:
             cmd.show_cmd()
+            print()
 
 
     def show_self_history(self):
