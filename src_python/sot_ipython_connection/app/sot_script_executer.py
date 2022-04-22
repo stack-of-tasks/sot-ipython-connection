@@ -1,8 +1,6 @@
 import sys
 import os
 
-from PyQt5 import QtWidgets
-
 scriptDirectory = os.path.dirname(__file__)
 moduleDirectory = os.path.join(scriptDirectory, '..')
 sys.path.append(moduleDirectory)
@@ -10,10 +8,6 @@ from sot_client import SOTClient
 
 
 def main(scripts_paths):
-    app = QtWidgets.QApplication.instance() 
-    if not app:
-        app = QtWidgets.QApplication([])
-
     kernel_client = SOTClient()
 
     # Running every script

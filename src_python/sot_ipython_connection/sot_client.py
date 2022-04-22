@@ -4,7 +4,6 @@ import jupyter_core
 from jupyter_client import BlockingKernelClient
 
 
-
 """ Documentation on messaging with jupyter:
     https://jupyter-client.readthedocs.io/en/latest/messaging.html#messaging-in-jupyter
 
