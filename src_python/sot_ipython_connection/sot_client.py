@@ -43,13 +43,13 @@ class SOTCommandInfo:
         print("Session id:", self.session_id)
         print("Command id:", self.id)
         print("Command:")
-        print(self.content)
+        print(f"`{self.content}`")
         if self.result:
             print("Result:")
-            print(self.result)
+            print(f"`{self.result}`")
         if self.stdout:
             print("Output:")
-            print(self.stdout)
+            print(f"`{self.stdout}`")
         if self.stderr:
             print("Error output:")
             print(self.stderr.traceback)
@@ -94,7 +94,7 @@ class SOTClient(BlockingKernelClient):
         if self.session_id == response["parent_header"]["session"]:
             return True
 
-    # TODO: stream is stdout, parsed text/plain is result
+    # TODO: update tests (adding result, modifying stdout)
     def save_command_info(self, response):
         # Creating the command if it's its first response
         cmd = self.get_cmd_by_id(response["parent_header"]["msg_id"])
@@ -110,11 +110,16 @@ class SOTClient(BlockingKernelClient):
         if response["msg_type"] == "execute_input":
             cmd.content = response["content"]["code"]
 
-        # Saving the command's output if applicable
+        # Saving the command's result
         if response["msg_type"] == "execute_result":
-            cmd.stdout = response["content"]["data"]["text/plain"]
+            cmd.result = response["content"]["data"]["text/plain"]
+        # TODO: parse it
 
-        # Saving the command's error if applicable
+        # Saving the command's stdout
+        if response["msg_type"] == "stream":
+            cmd.stdout = response["content"]["text"]
+
+        # Saving the command's error
         if response["msg_type"] == "error":
             cmd.stderr = cmd.SOTCommandError()
             cmd.stderr.name = response["content"]["ename"]

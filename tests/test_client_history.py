@@ -4,6 +4,8 @@ from PyQt5 import QtWidgets
 from src_python.sot_ipython_connection.sot_client import SOTClient
 
 
+# TODO: update the stderr tests (now using SOTCommandError)
+
 @pytest.fixture(autouse=True)
 def launch_kernel_and_app():
     app = QtWidgets.QApplication.instance()
