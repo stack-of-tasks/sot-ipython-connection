@@ -1,4 +1,4 @@
-import os
+""" import os
 
 from subprocess import Popen
 
@@ -21,4 +21,26 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main() """
+
+""" from sot_ipython_connection.sot_client import SOTCommandInfo
+
+
+def main():
+    cmd_error = SOTCommandInfo.SOTCommandError()
+    cmd_error.traceback  = "ghkfg"
+    cmd_error.name = "jkhg"
+    cmd_error.value = "lkgl"
+
+    print(str(cmd_error))
+
+
+if __name__ == "__main__":
+    main() """
+
+class cmd_test_class:
+    def __init__(self, attr_1):
+        self.attr_1 = attr_1
+        self.attr_2 = 2
+        self.attr_3 = 3
+

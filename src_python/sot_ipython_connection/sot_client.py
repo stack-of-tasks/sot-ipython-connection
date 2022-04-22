@@ -46,7 +46,8 @@ class SOTCommandInfo:
         print(f"`{self.content}`")
         if self.result:
             print("Result:")
-            print(f"`{self.result}`")
+            print(type(self.result))
+            print(self.result)
         if self.stdout:
             print("Output:")
             print(f"`{self.stdout}`")
@@ -112,8 +113,12 @@ class SOTClient(BlockingKernelClient):
 
         # Saving the command's result
         if response["msg_type"] == "execute_result":
-            cmd.result = response["content"]["data"]["text/plain"]
-        # TODO: parse it
+            cmd.result = eval(response["content"]["data"]["text/plain"])
+        # TODO: parse it -> nb, str, list, dict, tuple, type...
+        # does not work when
+        # response["content"]["data"]["text/plain"] equals
+        # <__main__.cmd_test_class at 0x7fdc610390d0>
+        # TODO: test it
 
         # Saving the command's stdout
         if response["msg_type"] == "stream":
