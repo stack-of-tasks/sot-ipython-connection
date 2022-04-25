@@ -113,11 +113,13 @@ class SOTClient(BlockingKernelClient):
 
         # Saving the command's result
         if response["msg_type"] == "execute_result":
-            cmd.result = eval(response["content"]["data"]["text/plain"])
-        # TODO: parse it -> nb, str, list, dict, tuple, type...
-        # does not work when
-        # response["content"]["data"]["text/plain"] equals
-        # <__main__.cmd_test_class at 0x7fdc610390d0>
+            try:
+                # Trying to parse the response
+                cmd.result = eval(response["content"]["data"]["text/plain"])
+            except:
+                # If the data is not parsable (e.g if it's a type), storing
+                # the string
+                cmd.result = response["content"]["data"]["text/plain"]
         # TODO: test it
 
         # Saving the command's stdout
