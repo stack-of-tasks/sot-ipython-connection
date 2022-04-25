@@ -1,27 +1,28 @@
-""" import os
-
+import os
+from time import sleep
 from subprocess import Popen
 
 
 def main():
     # Launching the kernel in a subprocess
-    kernel_launch_cmd = ["python3", "src_python/sot_ipython_connection/app/sot_interpreter.py"]
+    kernel_launch_cmd = ["python3", "src/sot-ipython-connection/src_python/sot_ipython_connection/app/sot_interpreter.py"]
     kernel_process = Popen(kernel_launch_cmd)
     print(kernel_process.pid)
 
     # Killing the kernel's subprocess
-    kernel_process.wait(10000)
+    sleep(1)
     print("1")
     kernel_process.terminate()
     print("2")
-    kernel_process.wait(10000)
+    kernel_process.wait(10)
     print("3")
     kernel_process.kill()
     print("4")
+    kernel_process.wait()
 
 
 if __name__ == "__main__":
-    main() """
+    main()
 
 """ from sot_ipython_connection.sot_client import SOTCommandInfo
 
@@ -38,9 +39,9 @@ def main():
 if __name__ == "__main__":
     main() """
 
-class cmd_test_class:
+""" class cmd_test_class:
     def __init__(self, attr_1):
         self.attr_1 = attr_1
         self.attr_2 = 2
-        self.attr_3 = 3
+        self.attr_3 = 3 """
 

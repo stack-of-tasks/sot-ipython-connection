@@ -31,8 +31,11 @@ def test_var_definition():
     assert kernel_client.cmd_history[0].stderr == None
     assert kernel_client.cmd_history[1].stderr == None
 
-    assert kernel_client.cmd_history[0].stdout == "1"
-    assert kernel_client.cmd_history[1].stdout == "2"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+
+    assert kernel_client.cmd_history[0].result == 1
+    assert kernel_client.cmd_history[1].result == 2
 
 
 def test_multiple_scripts_var_definition():
@@ -48,8 +51,11 @@ def test_multiple_scripts_var_definition():
     assert kernel_client.cmd_history[0].stderr == None
     assert kernel_client.cmd_history[1].stderr == None
 
-    assert kernel_client.cmd_history[0].stdout == "3"
-    assert kernel_client.cmd_history[1].stdout == "4"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+
+    assert kernel_client.cmd_history[0].result == 3
+    assert kernel_client.cmd_history[1].result == 4
 
 
 def test_multiple_scripts_var_redefinition():
@@ -65,5 +71,8 @@ def test_multiple_scripts_var_redefinition():
     assert kernel_client.cmd_history[0].stderr == None
     assert kernel_client.cmd_history[1].stderr == None
 
-    assert kernel_client.cmd_history[0].stdout == "55"
-    assert kernel_client.cmd_history[1].stdout == "6"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+
+    assert kernel_client.cmd_history[0].result == 55
+    assert kernel_client.cmd_history[1].result == 6

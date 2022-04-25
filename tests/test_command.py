@@ -10,6 +10,7 @@ def launch_kernel_and_app():
     if app is None:
         app = QtWidgets.QApplication([])
     app.setQuitOnLastWindowClosed(False)
+
     yield
         
 
@@ -28,8 +29,11 @@ def test_var_definition():
     assert kernel_client.cmd_history[2].stderr == None
     assert kernel_client.cmd_history[3].stderr == None
     
-    assert kernel_client.cmd_history[2].stdout == "1"
-    assert kernel_client.cmd_history[3].stdout == "'abc'"
+    assert kernel_client.cmd_history[2].stdout == None
+    assert kernel_client.cmd_history[3].stdout == None
+    
+    assert kernel_client.cmd_history[2].result == 1
+    assert kernel_client.cmd_history[3].result == 'abc'
 
 
 def test_var_redefinition():
@@ -45,7 +49,13 @@ def test_var_redefinition():
     assert kernel_client.cmd_history[1].stderr == None
     assert kernel_client.cmd_history[2].stderr == None
 
-    assert kernel_client.cmd_history[2].stdout == "33"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+    assert kernel_client.cmd_history[2].stdout == None
+
+    assert kernel_client.cmd_history[0].result == None
+    assert kernel_client.cmd_history[1].result == None
+    assert kernel_client.cmd_history[2].result == 33
 
 
 def test_operations():
@@ -63,7 +73,15 @@ def test_operations():
     assert kernel_client.cmd_history[2].stderr == None
     assert kernel_client.cmd_history[3].stderr == None
 
-    assert kernel_client.cmd_history[3].stdout == "9"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+    assert kernel_client.cmd_history[2].stdout == None
+    assert kernel_client.cmd_history[3].stdout == None
+
+    assert kernel_client.cmd_history[0].result == None
+    assert kernel_client.cmd_history[1].result == None
+    assert kernel_client.cmd_history[2].result == None
+    assert kernel_client.cmd_history[3].result == 9
     
 
 def test_undefined_var():
@@ -72,8 +90,9 @@ def test_undefined_var():
     kernel_client.run_python_command("undefined_var")
 
     assert len(kernel_client.cmd_history) == 1
-    assert kernel_client.cmd_history[0].stdout == None
     assert kernel_client.cmd_history[0].stderr != None
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[0].result == None
     
 
 def test_import():
@@ -87,7 +106,11 @@ def test_import():
     assert kernel_client.cmd_history[0].stderr == None
     assert kernel_client.cmd_history[1].stderr == None
 
-    assert kernel_client.cmd_history[1].stdout == "4.0"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+
+    assert kernel_client.cmd_history[0].result == None
+    assert kernel_client.cmd_history[1].result == 4.0
     
 
 def test_object():
@@ -115,7 +138,17 @@ def test_object():
     assert kernel_client.cmd_history[3].stderr == None
     assert kernel_client.cmd_history[4].stderr == None
     assert kernel_client.cmd_history[5].stderr == None
-    
-    assert kernel_client.cmd_history[3].stdout == "'abc'"
-    assert kernel_client.cmd_history[4].stdout == "2"
-    assert kernel_client.cmd_history[5].stdout == "33"
+
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+    assert kernel_client.cmd_history[2].stdout == None
+    assert kernel_client.cmd_history[3].stdout == None
+    assert kernel_client.cmd_history[4].stdout == None
+    assert kernel_client.cmd_history[5].stdout == None
+
+    assert kernel_client.cmd_history[0].result == None
+    assert kernel_client.cmd_history[1].result == None
+    assert kernel_client.cmd_history[2].result == None
+    assert kernel_client.cmd_history[3].result == 'abc'
+    assert kernel_client.cmd_history[4].result == 2
+    assert kernel_client.cmd_history[5].result == 33

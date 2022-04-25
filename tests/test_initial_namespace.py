@@ -6,10 +6,12 @@ from sot_ipython_connection.sot_client import SOTClient
 
 @pytest.fixture(autouse=True)
 def launch_kernel_and_app():
+    # TODO: remove app?
     app = QtWidgets.QApplication.instance()
     if app is None:
         app = QtWidgets.QApplication([])
     app.setQuitOnLastWindowClosed(False)
+
     yield
 
 
@@ -28,7 +30,12 @@ def test_namespace():
     assert kernel_client.cmd_history[2].stderr == None
     assert kernel_client.cmd_history[3].stderr != None
 
-    assert kernel_client.cmd_history[0].stdout == "46"
-    assert kernel_client.cmd_history[1].stdout == "54"
-    assert kernel_client.cmd_history[2].stdout == "100"
+    assert kernel_client.cmd_history[0].stdout == None
+    assert kernel_client.cmd_history[1].stdout == None
+    assert kernel_client.cmd_history[2].stdout == None
     assert kernel_client.cmd_history[3].stdout == None
+
+    assert kernel_client.cmd_history[0].result == 46
+    assert kernel_client.cmd_history[1].result == 54
+    assert kernel_client.cmd_history[2].result == 100
+    assert kernel_client.cmd_history[3].result == None
