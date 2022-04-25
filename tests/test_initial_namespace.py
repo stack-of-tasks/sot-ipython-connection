@@ -1,11 +1,4 @@
-import pytest
-
 from sot_ipython_connection.sot_client import SOTClient
-
-
-@pytest.fixture(autouse=True)
-def launch_kernel_and_app():
-   yield
 
 
 def test_namespace():
