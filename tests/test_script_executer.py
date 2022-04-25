@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from PyQt5 import QtWidgets
 
 from sot_ipython_connection.sot_client import SOTClient
 from sot_ipython_connection.app.sot_script_executer import main as script_executer
@@ -12,10 +11,6 @@ script_directory = os.path.dirname(__file__)
 
 @pytest.fixture(autouse=True)
 def launch_kernel_and_app():
-    app = QtWidgets.QApplication.instance()
-    if app is None:
-        app = QtWidgets.QApplication([])
-    app.setQuitOnLastWindowClosed(False)
     yield
 
 
