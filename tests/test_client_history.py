@@ -1,13 +1,4 @@
-import pytest
-
-from src_python.sot_ipython_connection.sot_client import SOTClient
-
-
-# TODO: update the stderr tests (now using SOTCommandError)
-
-@pytest.fixture(autouse=True)
-def launch_kernel_and_app():
-    yield
+from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandInfo
        
 
 def test_no_cmd():
@@ -42,6 +33,7 @@ def test_one_cmd_error():
     assert kernel_client.cmd_history[0].stdout == None
 
     assert kernel_client.cmd_history[0].stderr != None
+    assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandInfo.SOTCommandError())
     assert kernel_client.cmd_history[0].stderr.traceback != None
     assert type(kernel_client.cmd_history[0].stderr.traceback) == type("str")
     assert kernel_client.cmd_history[0].stderr.name != None
