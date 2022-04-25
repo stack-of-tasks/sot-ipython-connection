@@ -1,85 +1,110 @@
+import os
+import time
+from subprocess import Popen
+
 from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandInfo
-       
-
-def test_no_cmd():
-    kernel_client = SOTClient()
-    assert len(kernel_client.cmd_history) == 0
 
 
-def test_one_cmd_successful():
-    kernel_client = SOTClient()
-    kernel_client.run_python_command("1 + 1")
+class TestClientHistory:
 
-    assert len(kernel_client.cmd_history) == 1
+    @classmethod
+    def setup_class(self):
+        # Launching the kernel in a subprocess
+        interpreter_path = os.path.join(
+            os.path.dirname(__file__),
+            '../src_python/sot_ipython_connection/app/sot_interpreter.py'
+        )
+        self.kernel_process = Popen(["python3", interpreter_path])
+        time.sleep(5)
 
-    assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
-    assert kernel_client.cmd_history[0].id != None
-    assert kernel_client.cmd_history[0].content == "1 + 1"
-    assert kernel_client.cmd_history[0].result == 2
-    assert kernel_client.cmd_history[0].stdout == None
-    assert kernel_client.cmd_history[0].stderr == None
-
-
-def test_one_cmd_error():
-    kernel_client = SOTClient()
-    kernel_client.run_python_command("unknown_variable")
-
-    assert len(kernel_client.cmd_history) == 1
-
-    assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
-    assert kernel_client.cmd_history[0].id != None
-    assert kernel_client.cmd_history[0].content == "unknown_variable"
-    assert kernel_client.cmd_history[0].result == None
-    assert kernel_client.cmd_history[0].stdout == None
-
-    assert kernel_client.cmd_history[0].stderr != None
-    assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandInfo.SOTCommandError())
-    assert kernel_client.cmd_history[0].stderr.traceback != None
-    assert type(kernel_client.cmd_history[0].stderr.traceback) == type("str")
-    assert kernel_client.cmd_history[0].stderr.name != None
-    assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
-    assert kernel_client.cmd_history[0].stderr.value != None
-    assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
+    @classmethod
+    def teardown_class(self):
+        # Terminating and killing the kernel's subprocess
+        self.kernel_process.terminate()
+        self.kernel_process.wait(10)
+        self.kernel_process.kill()
+        self.kernel_process.wait(10)
 
 
-def test_one_cmd_stdout():
-    kernel_client = SOTClient()
+    def test_no_cmd(self):
+        kernel_client = SOTClient()
+        assert len(kernel_client.cmd_history) == 0
 
-    kernel_client.run_python_command("print('hello')")
 
-    assert len(kernel_client.cmd_history) == 1
-    assert kernel_client.cmd_history[0].stderr == None
-    assert kernel_client.cmd_history[0].stdout == 'hello\n'
-    assert kernel_client.cmd_history[0].result == None
-    
+    def test_one_cmd_successful(self):
+        kernel_client = SOTClient()
+        kernel_client.run_python_command("1 + 1")
 
-def test_several_cmd():
-    kernel_client = SOTClient()
-    kernel_client.run_python_command("test_history_1 = 1")
-    kernel_client.run_python_command("test_history_1")
+        assert len(kernel_client.cmd_history) == 1
 
-    assert len(kernel_client.cmd_history) == 2
+        assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
+        assert kernel_client.cmd_history[0].id != None
+        assert kernel_client.cmd_history[0].content == "1 + 1"
+        assert kernel_client.cmd_history[0].result == 2
+        assert kernel_client.cmd_history[0].stdout == None
+        assert kernel_client.cmd_history[0].stderr == None
 
-    assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
-    assert kernel_client.cmd_history[0].id != None
-    assert kernel_client.cmd_history[0].content == "test_history_1 = 1"
-    assert kernel_client.cmd_history[0].result == None
-    assert kernel_client.cmd_history[0].stdout == None
-    assert kernel_client.cmd_history[0].stderr == None
 
-    assert kernel_client.cmd_history[1].session_id == kernel_client.session_id
-    assert kernel_client.cmd_history[1].id != None
-    assert kernel_client.cmd_history[1].content == "test_history_1"
-    assert kernel_client.cmd_history[1].result == 1
-    assert kernel_client.cmd_history[1].stdout == None
-    assert kernel_client.cmd_history[1].stderr == None
+    def test_one_cmd_error(self):
+        kernel_client = SOTClient()
+        kernel_client.run_python_command("unknown_variable")
 
-    assert kernel_client.cmd_history[1].id != kernel_client.cmd_history[0].id
-    
+        assert len(kernel_client.cmd_history) == 1
 
-def test_several_sessions():
-    ... # TODO
-    
+        assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
+        assert kernel_client.cmd_history[0].id != None
+        assert kernel_client.cmd_history[0].content == "unknown_variable"
+        assert kernel_client.cmd_history[0].result == None
+        assert kernel_client.cmd_history[0].stdout == None
 
-def test_self_history():
-    ... # TODO: compare history and self history after several clients have sent commands
+        assert kernel_client.cmd_history[0].stderr != None
+        assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandInfo.SOTCommandError())
+        assert kernel_client.cmd_history[0].stderr.traceback != None
+        assert type(kernel_client.cmd_history[0].stderr.traceback) == type("str")
+        assert kernel_client.cmd_history[0].stderr.name != None
+        assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
+        assert kernel_client.cmd_history[0].stderr.value != None
+        assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
+
+
+    def test_one_cmd_stdout(self):
+        kernel_client = SOTClient()
+
+        kernel_client.run_python_command("print('hello')")
+
+        assert len(kernel_client.cmd_history) == 1
+        assert kernel_client.cmd_history[0].stderr == None
+        assert kernel_client.cmd_history[0].stdout == 'hello\n'
+        assert kernel_client.cmd_history[0].result == None
+        
+
+    def test_several_cmd(self):
+        kernel_client = SOTClient()
+        kernel_client.run_python_command("test_history_1 = 1")
+        kernel_client.run_python_command("test_history_1")
+
+        assert len(kernel_client.cmd_history) == 2
+
+        assert kernel_client.cmd_history[0].session_id == kernel_client.session_id
+        assert kernel_client.cmd_history[0].id != None
+        assert kernel_client.cmd_history[0].content == "test_history_1 = 1"
+        assert kernel_client.cmd_history[0].result == None
+        assert kernel_client.cmd_history[0].stdout == None
+        assert kernel_client.cmd_history[0].stderr == None
+
+        assert kernel_client.cmd_history[1].session_id == kernel_client.session_id
+        assert kernel_client.cmd_history[1].id != None
+        assert kernel_client.cmd_history[1].content == "test_history_1"
+        assert kernel_client.cmd_history[1].result == 1
+        assert kernel_client.cmd_history[1].stdout == None
+        assert kernel_client.cmd_history[1].stderr == None
+
+        assert kernel_client.cmd_history[1].id != kernel_client.cmd_history[0].id
+        
+
+    def test_several_sessions(self):
+        ... # TODO
+        
+
+    def test_self_history(self):
+        ... # TODO: compare history and self history after several clients have sent commands
