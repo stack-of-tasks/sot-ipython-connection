@@ -102,7 +102,7 @@ class SOTClient(BlockingKernelClient):
         if self.session_id == response["parent_header"]["session"]:
             return True
 
-    # TODO: update tests (adding result, modifying stdout)
+
     def save_command_info(self, response):
         # Creating the command if it's its first response
         cmd = self.get_cmd_by_id(response["parent_header"]["msg_id"])
@@ -127,7 +127,6 @@ class SOTClient(BlockingKernelClient):
                 # If the data is not parsable (e.g if it's a type), storing
                 # the string
                 cmd.result = response["content"]["data"]["text/plain"]
-        # TODO: test it
 
         # Saving the command's stdout
         if response["msg_type"] == "stream":
@@ -187,9 +186,6 @@ class SOTClient(BlockingKernelClient):
             to the doc on messaging with jupyter for every step),
             while saving the response to self.cmd_history
         """
-
-        # TODO: (fix) the filepath is relative to the directory the kernel
-        # has been launched from
 
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
