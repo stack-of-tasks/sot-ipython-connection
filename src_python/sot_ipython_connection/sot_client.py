@@ -18,9 +18,10 @@ nest_asyncio.apply()
 
 def get_latest_connection_file_path():
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
-    files = directory_path.glob("*")
+    connection_files = directory_path.glob("*")
+    assert connection_files != []
     # TODO: error management if there is no file
-    return max(files, key=lambda x: x.stat().st_ctime)
+    return max(connection_files, key=lambda x: x.stat().st_ctime)
 
 
 class SOTCommandInfo:
