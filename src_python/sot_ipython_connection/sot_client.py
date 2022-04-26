@@ -1,3 +1,4 @@
+from os.path import exists
 from pathlib import Path
 import nest_asyncio
 import jupyter_core
@@ -58,6 +59,8 @@ class SOTCommandInfo:
 
 class SOTClient(BlockingKernelClient):
     def __init__(self):
+        # This is this client session's id, used to differentiate its commands from the
+        # others client's (e.g in the command history)
         self.session_id = self.session.session
 
         # List of SOTCommandInfo: history of this session's commands and their responses
@@ -75,6 +78,10 @@ class SOTClient(BlockingKernelClient):
         # Setting up and starting the communication with the kernel
         self.load_connection_file(get_latest_connection_file_path())
         self.start_channels()
+        
+
+    def __del__(self):
+        self.stop_channels()
 
 
     def is_kernel_alive(self):
@@ -181,6 +188,9 @@ class SOTClient(BlockingKernelClient):
             while saving the response to self.cmd_history
         """
 
+        # TODO: (fix) the filepath is relative to the directory the kernel
+        # has been launched from
+
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
         cmd_info = None
@@ -210,9 +220,26 @@ class SOTClient(BlockingKernelClient):
         return cmd_info
 
 
-    def run_python_script(self, filepath):
+    def run_local_python_script(self, filepath):
+        """ Runs a python script on the kernel.
+            filepath: the script's path. It must be either:
+            - absolute, on the same machine as the client
+            - relative to the directory from which the client was launched
+        """
+        # TODO: update tests
+        if exists(filepath):
+            with open(filepath, 'r') as file:
+                file_content = file.read()
+            self.run_python_command(file_content)
+        else:
+            print("Could not execute script: file " + filepath + " does not exist.")
+
+
+    def run_kernel_side_python_script(self, filepath):
+        """ Runs a python script on the kernel.
+            filepath: the script's path. It must be either:
+            - absolute, on the same machine as the kernel
+            - relative to the directory from which the kernel was launched
+        """
+        # TODO: update tests
         self.run_python_command("%run " + str(filepath))
-
-
-    def __del__(self):
-        self.stop_channels()
