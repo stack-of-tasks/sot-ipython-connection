@@ -89,7 +89,7 @@ class SOTCommandInfo:
 
 class SOTClient(BlockingKernelClient):
     """ (Inherits BlockingKernelClient)
-        A client with blocking APIs to communicate with a SOTKernel.
+        An ipython client with blocking APIs to communicate with a SOTKernel.
         - self.session_id (str): the client's current session id. If the client
           has to be relaunched, this id will change. It can be used to
           differentiate the current session's commands from the others sessions'
