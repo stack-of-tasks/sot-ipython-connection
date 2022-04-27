@@ -5,7 +5,7 @@ from ipykernel.kernelapp import launch_new_instance
 
 class SOTKernel:
     """ A configurable ipython kernel to work with the Stack of Tasks.
-        - self.connectionConfig (dict): the kernel's connection info
+        - self.connectionConfig (dict): the kernel's connection information
           (ports, ip...). Configurable in `connection_config.py`.
         - self.namespace (dict): the variables the kernel will be
           initialized with when launched. Configurable in

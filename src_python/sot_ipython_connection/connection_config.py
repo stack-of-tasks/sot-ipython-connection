@@ -1,3 +1,5 @@
+# The SOTKernel's connection information
+
 config = dict(
     shell_port = 42767,
     iopub_port = 46117,
