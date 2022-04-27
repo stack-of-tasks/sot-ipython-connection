@@ -28,29 +28,22 @@ def get_latest_connection_file_path():
 
 class SOTCommandInfo:
     """ Represents a command and its information:
-
         - self.id (str):
           The id of the request containing the command.
-
         - self.session_id (str):
           The id of the client session that sent the request.
-
         - self.content (str):
           The content of the command.
-
         - self.result (any type, optional):
           The result sent by the kernel if the request was of the `execute_input`
           type (e.g '2+2'). If the kernel's result is not parsable by `eval()`,
           it will be stored unparsed.
-
         - self.stdout (str, optional):
           The output sent by the kernel if its response was of the `stream` type
           (e.g a response to the command "print('hello')" which has a type
           `execute_request`).
-
         - self.stderr (SOTCommandError, optional):
           The error sent by the kernel in response to this command.
-        
     """
 
     class SOTCommandError:
@@ -128,14 +121,17 @@ class SOTClient(BlockingKernelClient):
 
 
     def is_kernel_alive(self):
+        """ Returns True if activity is detected on the heartbeat of the
+            kernel this session is connected to.
+        """
         raise NotImplementedError
-        # TODO: listen to the kernel's heartbeat and return True if
-        # the kernel is alive
+        # TODO: listen to the kernel's heartbeat on the hb channel
 
 
     def reconnect_to_kernel(self):
+        """ Reconnects this client to the latest kernel """
         raise NotImplementedError
-        # TODO: Reconnect to the latest kernel
+        # TODO
 
 
     def is_response_to_self(self, response):
