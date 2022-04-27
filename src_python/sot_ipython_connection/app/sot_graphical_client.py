@@ -4,7 +4,6 @@ from sot_ipython_connection.sot_client import SOTClient
 
 
 def main():
-    # TODO: launch the qt client
     app = QtWidgets.QApplication.instance() 
     if not app:
         app = QtWidgets.QApplication([])

@@ -20,7 +20,7 @@ def get_latest_connection_file_path():
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
     connection_files = directory_path.glob("*")
     assert connection_files != []
-    # TODO: error management if there is no file
+    # TODO: better error management if there is no file
     return max(connection_files, key=lambda x: x.stat().st_ctime)
 
 
@@ -223,7 +223,6 @@ class SOTClient(BlockingKernelClient):
             - absolute, on the same machine as the client
             - relative to the directory from which the client was launched
         """
-        # TODO: update tests
         if exists(filepath):
             with open(filepath, 'r') as file:
                 file_content = file.read()
@@ -238,5 +237,4 @@ class SOTClient(BlockingKernelClient):
             - absolute, on the same machine as the kernel
             - relative to the directory from which the kernel was launched
         """
-        # TODO: update tests
         self.run_python_command("%run " + str(filepath))

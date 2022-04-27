@@ -107,4 +107,6 @@ class TestClientHistory:
         
 
     def test_self_history(self):
-        ... # TODO: compare history and self history after several clients have sent commands
+        ...
+        # TODO: compare history and self history after several clients
+        # have sent commands
