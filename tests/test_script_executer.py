@@ -113,3 +113,4 @@ class TestScriptExecuter:
 
         assert kernel_client.cmd_history[0].result == 7
         assert kernel_client.cmd_history[1].result == 8
+        # TODO: (fix) killing the kernel
