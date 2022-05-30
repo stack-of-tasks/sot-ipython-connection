@@ -59,6 +59,10 @@ class SOTCommandInfo:
             self.value = None
 
 
+        def __repr__(self):
+            return self.traceback
+
+
     def __init__(self):
         self.session_id = None
         self.id = None
@@ -184,11 +188,7 @@ class SOTClient(BlockingKernelClient):
             cmd.stderr = cmd.SOTCommandError()
             cmd.stderr.name = response["content"]["ename"]
             cmd.stderr.value = response["content"]["evalue"]
-            # Getting the error's traceback (a list of str) into one single string
-            traceback = ""
-            for line in response["content"]["traceback"]:
-                traceback += (line + '\n')
-            cmd.stderr.traceback = traceback
+            cmd.stderr.traceback = '\n'.join(response["content"]["traceback"])
 
         # Adding the command to the history if this is its first response
         if is_new_cmd:
