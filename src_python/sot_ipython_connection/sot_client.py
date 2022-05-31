@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Union
-from os.path import exists
+from pathlib import Path
 
 from pathlib import Path
 import nest_asyncio
@@ -319,7 +319,7 @@ class SOTClient(BlockingKernelClient):
             (on the same machine as the client), or relative to the
             directory from which the client was launched
         """
-        if exists(filepath):
+        if Path(filepath).exists():
             with open(filepath, 'r') as file:
                 file_content = file.read()
             self.run_python_command(file_content)

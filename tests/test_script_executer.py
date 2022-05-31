@@ -1,23 +1,25 @@
+from unittest import TestCase
 import os
 import time
-from pathlib import PurePosixPath
+from pathlib import PurePosixPath, Path
 from subprocess import Popen
 
 from sot_ipython_connection.sot_client import SOTClient
 from sot_ipython_connection.app.sot_script_executer import main as script_executer
 
 
-current_script_directory = os.path.dirname(__file__)
+current_script_directory = str(Path(__file__).resolve().parent)
+input_scripts_dir = str(Path(__file__).resolve().parent/'input_scripts')
 
 
-class TestScriptExecuter:
+class TestScriptExecuter(TestCase):
 
     @classmethod
     def setup_class(self):
         # Launching the kernel in a subprocess
-        interpreter_path = os.path.join(
-            os.path.dirname(__file__),
-            '../src_python/sot_ipython_connection/app/sot_interpreter.py'
+        interpreter_path = (
+            Path(__file__).resolve().parent.parent/
+                'src_python'/'sot_ipython_connection'/'app'/'sot_interpreter.py'
         )
         self.kernel_process = Popen(["python3", interpreter_path])
         time.sleep(5)
@@ -34,7 +36,8 @@ class TestScriptExecuter:
     def test_var_definition(self):
         kernel_client = SOTClient()
 
-        script_executer([current_script_directory + "/script_test_1.py"])
+        script_path = str(Path(input_scripts_dir)/'script_test_1.py')
+        script_executer([script_path])
         kernel_client.run_python_command("script_var_1")
         kernel_client.run_python_command("script_var_2")
 
@@ -53,8 +56,11 @@ class TestScriptExecuter:
     def test_multiple_scripts_var_definition(self):
         kernel_client = SOTClient()
 
-        script_executer([current_script_directory + "/script_test_2.py",
-            current_script_directory + "/script_test_3.py"])
+        script_paths = [
+            str(Path(input_scripts_dir)/'script_test_2.py'),
+            str(Path(input_scripts_dir)/'script_test_3.py')
+        ]
+        script_executer(script_paths)
         kernel_client.run_python_command("script_var_3")
         kernel_client.run_python_command("script_var_4")
 
@@ -73,8 +79,11 @@ class TestScriptExecuter:
     def test_multiple_scripts_var_redefinition(self):
         kernel_client = SOTClient()
 
-        script_executer([current_script_directory + "/script_test_4.py",
-            current_script_directory + "/script_test_5.py"])
+        script_paths = [
+            str(Path(input_scripts_dir)/'script_test_4.py'),
+            str(Path(input_scripts_dir)/'script_test_5.py')
+        ]
+        script_executer(script_paths)
         kernel_client.run_python_command("script_var_5")
         kernel_client.run_python_command("script_var_6")
 
@@ -95,10 +104,15 @@ class TestScriptExecuter:
         os.chdir('../')
         kernel_client = SOTClient()
         
-        # Getting the test script's path (relative to where the clientwas launched)
-        path_to_test_script_dir = str(PurePosixPath(current_script_directory).relative_to(os.getcwd()))
-        script_executer([path_to_test_script_dir + "/script_test_6.py", '-l'])
-        script_executer(['--local', path_to_test_script_dir + "/script_test_7.py"])
+        # Getting the test script's path (relative to where the client was launched)
+        new_path_to_test_script_dir = str(PurePosixPath(input_scripts_dir).
+            relative_to(Path.cwd()))
+        
+        script_path = str(Path(new_path_to_test_script_dir)/'script_test_6.py')
+        script_executer([script_path, '-l'])
+
+        script_path = str(Path(new_path_to_test_script_dir)/'script_test_7.py')
+        script_executer(['--local', script_path])
 
         kernel_client.run_python_command("script_var_7")
         kernel_client.run_python_command("script_var_8")

@@ -1,18 +1,20 @@
-import os
+from unittest import TestCase
 import time
 from subprocess import Popen
+
+from pathlib import Path
 
 from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandError
 
 
-class TestClientHistory:
+class TestClientHistory(TestCase):
 
     @classmethod
     def setup_class(self):
         # Launching the kernel in a subprocess
-        interpreter_path = os.path.join(
-            os.path.dirname(__file__),
-            '../src_python/sot_ipython_connection/app/sot_interpreter.py'
+        interpreter_path = (
+            Path(__file__).resolve().parent.parent/
+                'src_python'/'sot_ipython_connection'/'app'/'sot_interpreter.py'
         )
         self.kernel_process = Popen(["python3", interpreter_path])
         time.sleep(5)
