@@ -117,28 +117,29 @@ class SOTCommandInfo:
 class SOTClient(BlockingKernelClient):
     """ (Inherits BlockingKernelClient)
         An ipython client with blocking APIs to communicate with a SOTKernel.
-        - self.session_id (str): the client's current session id. If the client
+
+        Public attributes:
+        - `session_id` (`str`): the client's current session id. If the client
           has to be relaunched, this id will change. It can be used to
           differentiate the current session's commands from the others sessions'
           (e.g in the command history).
-        - self.cmd_history ([SOTCommandInfo]): a history of the current session's
+        - `cmd_history` (`[SOTCommandInfo]`): a history of the current session's
           commands (in the future, it would be great to store every session's commands).
     """
     
     def __init__(self):
-        self.session_id = self.session.session
-        self.cmd_history = []
-        """ TODO: the get_iopub_msg() call used in this program returns responses to
-            every client (session) connected to the kernel.
-            To store a history of every session's commands, we should listen to the kernel's
-            iopub channel in another thread and save the commands with the method currently 
-            used, as self.save_response() already saves the command's session id (which
-            allows to differentiate every client)
-            self.get_self_history currently has no use, as self.cmd_history only store this
-            session's commands.
-        """
+        self.session_id: str = self.session.session
+        self.cmd_history: List[SOTCommandInfo] = []
+        # TODO: the get_iopub_msg() call used in run_python_command returns responses to
+        # every client (session) connected to the kernel.
+        # To store a history of every session's commands, we should listen to the kernel's
+        # iopub channel in another thread and save the commands with the method currently 
+        # used, as self._save_response() already saves the command's session id (which
+        # allows to differentiate every client)
+        # self.get_self_history currently has no use, as self.cmd_history only store this
+        # session's commands.
 
-        # Setting up and starting the communication with the kernel
+        # Setting up and starting the communication with the kernel:
         connection_file_path = get_latest_connection_file_path()
         if connection_file_path is None:
             raise ValueError("Could not connect to the kernel: no connection file found.")
@@ -159,31 +160,39 @@ class SOTClient(BlockingKernelClient):
 
 
     def reconnect_to_kernel(self) -> None:
-        """ Reconnects this client to the latest kernel """
+        """ Reconnects this client to the latest kernel. """
         raise NotImplementedError
         # TODO
 
 
-    def is_response_to_self(self, response: Dict) -> bool:
+    def _is_response_to_self(self, response: Dict) -> bool:
         """ Returns True if the `response` argument is a response to a request
             sent by the current client session.
+
+            Arguments:
+            - `response`: the response as sent by the kernel
         """
         return self.session_id == response["parent_header"]["session"]
 
 
-    def save_response(self, response: Dict) -> SOTCommandInfo:
-        """ Saves the `response`'s information as part of a `SOTCommandInfo`'s
+    def _save_response(self, response: Dict) -> SOTCommandInfo:
+        """ Saves the `response`'s information as a `SOTCommandInfo`'s
             attribute in the command history and returns the created or modified
-            `SOTCommandInfo`.
+            `SOTCommandInfo` instance.
             Each response contains the `SOTCommandInfo`'s `session_id` and `id`,
             in addition to either `content`, `result`, `stdout` or `stderr`. Hence,
             several calls to this function are necessary to fully store a command's
             information.
-            - response (dict): the response as sent by the kernel
+
+            Arguments:
+            - `response`: the response as sent by the kernel
         """
-        # Creating the command if this is its first response
-        cmd = self.get_cmd_by_id(response["parent_header"]["msg_id"])
+
+        # Trying to find a command in the history with the same id as `response`
+        cmd = self._get_cmd_by_id(response["parent_header"]["msg_id"])
         is_new_cmd = False
+
+        # Creating the command if this is its first response
         if cmd == None:
             is_new_cmd = True
             session_id = response["parent_header"]["session"]
@@ -200,8 +209,7 @@ class SOTClient(BlockingKernelClient):
                 # Trying to parse the response
                 cmd.result = eval(response["content"]["data"]["text/plain"])
             except:
-                # If the data is not parsable (e.g if it's a type), we store
-                # the string
+                # If the data is not parsable (e.g if it's a type), we store the string
                 cmd.result = response["content"]["data"]["text/plain"]
 
         # Saving the command's stdout
@@ -222,10 +230,12 @@ class SOTClient(BlockingKernelClient):
         return cmd
 
 
-    def get_cmd_by_id(self, id: str) -> Union[SOTCommandInfo, None]:
+    def _get_cmd_by_id(self, id: str) -> Union[SOTCommandInfo, None]:
         """ Looks for the command in the history and returns it if it was
             found. Else, returns None.
-            - id (str): the id of the client's request containing the command
+
+            Arguments:
+            - `id`:  id of the client's request containing the command
         """
         for cmd in reversed(self.cmd_history):
             if cmd.id == id:
@@ -245,14 +255,13 @@ class SOTClient(BlockingKernelClient):
 
 
     def print_self_history(self) -> None:
-        """ Prints the infomation of each command of `self.cmd_history`.
-        """
+        """ Prints the information of each command sent by the current session. """
         self_history = self.get_self_history()
         self.print_history(self_history)
 
 
     def get_self_history(self) -> List[SOTCommandInfo]:
-        """ Returns a filtered copy of self.cmd_history by keeping
+        """ Returns a filtered copy of the command history by keeping
             only the commands that were sent by the current session.
         """
         self_history = []
@@ -266,8 +275,11 @@ class SOTClient(BlockingKernelClient):
         """ This is a blocking function that sends a command to the kernel and 
             waits for it to respond completely (see link to the doc on messaging
             with jupyter for every step), while saving each response into a new
-            instance of SOTCommandInfo in self.cmd_history. Returns this new instance.
-            - cmd (str): the command to be sent to the kernel
+            instance of SOTCommandInfo in self.cmd_history.
+            It then returns this new instance.
+
+            Arguments:
+            - `cmd`: the command to be sent to the kernel
         """
 
         # Sending the command to the kernel
@@ -285,12 +297,12 @@ class SOTClient(BlockingKernelClient):
                 # Saving the response to the command history only if it responds
                 # to our command
                 if response["parent_header"]["msg_id"] == msg_id:
-                    cmd_info = self.save_response(response)
+                    cmd_info = self._save_response(response)
 
                 # We can stop listening to the kernel's responses if it
                 # changes its status to 'idle' in response to our command.
                 if response["content"]["execution_state"] == "idle" \
-                    and self.is_response_to_self(response):
+                    and self._is_response_to_self(response):
                     whole_response_received = True
 
             except: # Entered when there is no more reponses to get
@@ -301,7 +313,9 @@ class SOTClient(BlockingKernelClient):
 
     def run_local_python_script(self, filepath: str) -> None:
         """ Runs a python script on the kernel.
-            - filepath (str): the script's path. It must be either absolute
+
+            Arguments:
+            - `filepath`: the script's path. It must be either absolute
             (on the same machine as the client), or relative to the
             directory from which the client was launched
         """
@@ -315,7 +329,9 @@ class SOTClient(BlockingKernelClient):
 
     def run_kernel_side_python_script(self, filepath: str) -> None:
         """ Runs a python script on the kernel.
-            - filepath (str): the script's path. It must be either absolute
+
+            Arguments:
+            - `filepath`: the script's path. It must be either absolute
             (on the same machine as the kernel), or relative to the directory
             from which the kernel was launched
         """
