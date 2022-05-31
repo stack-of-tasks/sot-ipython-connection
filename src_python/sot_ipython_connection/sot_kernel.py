@@ -13,12 +13,10 @@ class SOTKernel:
         # The kernel's connection information (ports, ip...).
         # Configurable in connection_config.py:
         self._connectionConfig: Dict = connection_config
-        # TODO: error management if no file
 
         # The variables the kernel will be initialized with when launched.
         # Configurable in kernel_namespace_config.py:
         self._namespace: Dict = kernel_namespace
-        # TODO: error management if no file
 
         # Pid of the subprocess the kernel is launched in in case of a non-blocking run:
         self._kernel_pid = None
@@ -48,10 +46,12 @@ class SOTKernel:
             namespace and ports, in a subprocess. This subprocess is terminated
             when the `SOTKernel` object is destroyed.
         """
+        # TODO
         ... # allow only one run 
 
 
     def __del__(self):
+        # TODO
         ...
         # if self._kernel_pid is not None:
         #     for _ range(5):
