@@ -60,13 +60,13 @@ class TestClientHistory(TestCase):
         assert kernel_client.cmd_history[0].stdout == None
 
         assert kernel_client.cmd_history[0].stderr != None
-        assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandError())
+        assert isinstance(kernel_client.cmd_history[0].stderr, SOTCommandError)
         assert kernel_client.cmd_history[0].stderr.traceback != None
-        assert type(kernel_client.cmd_history[0].stderr.traceback) == type("str")
+        assert isinstance(kernel_client.cmd_history[0].stderr.traceback, str)
         assert kernel_client.cmd_history[0].stderr.name != None
-        assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
+        assert isinstance(kernel_client.cmd_history[0].stderr.name, str)
         assert kernel_client.cmd_history[0].stderr.value != None
-        assert type(kernel_client.cmd_history[0].stderr.name) == type("str")
+        assert isinstance(kernel_client.cmd_history[0].stderr.name, str)
 
 
     def test_one_cmd_stdout(self):
