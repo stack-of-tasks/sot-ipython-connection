@@ -2,7 +2,7 @@ import os
 import time
 from subprocess import Popen
 
-from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandInfo
+from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandError
 
 
 class TestClientHistory:
@@ -58,7 +58,7 @@ class TestClientHistory:
         assert kernel_client.cmd_history[0].stdout == None
 
         assert kernel_client.cmd_history[0].stderr != None
-        assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandInfo.SOTCommandError())
+        assert type(kernel_client.cmd_history[0].stderr) == type(SOTCommandError())
         assert kernel_client.cmd_history[0].stderr.traceback != None
         assert type(kernel_client.cmd_history[0].stderr.traceback) == type("str")
         assert kernel_client.cmd_history[0].stderr.name != None
