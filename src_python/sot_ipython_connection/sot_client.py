@@ -1,4 +1,6 @@
+from typing import Dict, List, Union
 from os.path import exists
+
 from pathlib import Path
 import nest_asyncio
 import jupyter_core
@@ -16,13 +18,14 @@ from jupyter_client import BlockingKernelClient
 nest_asyncio.apply()
 
 
-def get_latest_connection_file_path():
-    """ Returns the path of the most recent jupyter kernel connection file 
+def get_latest_connection_file_path() -> Union[str, None]:
+    """ Returns the path of the most recent jupyter kernel connection file, or
+        `None` is none was found.
     """
-    # TODO: better error management if there is no file
     directory_path = Path(jupyter_core.paths.jupyter_runtime_dir())
     connection_files = directory_path.glob("*")
-    assert connection_files != []
+    if connection_files == []:
+        return None
     return max(connection_files, key=lambda x: x.stat().st_ctime)
 
 
@@ -48,19 +51,32 @@ class SOTCommandInfo:
 
     class SOTCommandError:
         """ Represents an error sent by the kernel in response to a client's
-            command:
-            - self.traceback (str): The exception's formatted traceback.
-            - self.name (str): The exception's name.
-            - self.value (str): The exception's value.
+            command.
+
+            Public methods:
+            - `traceback()`: returns the exception's formatted traceback.
+            - `name()`: returns the exception's name.
+            - `value()`: returns the exception's value.
         """
         def __init__(self):
-            self.traceback = None
-            self.name = None
-            self.value = None
+            self._traceback: str = None
+            self._name: str = None
+            self._value: str = None
 
 
-        def __repr__(self):
+        def __str__(self):
             return self.traceback
+        def __repr__(self):
+            return f"_name: {self._name}\n_value: {self._value}\n\
+                    _traceback: {self._traceback}\n"
+
+
+        def traceback(self) -> str:
+            return self._traceback
+        def name(self) -> str:
+            return self._name
+        def value(self) -> str:
+            return self._value
 
 
     def __init__(self):
@@ -72,7 +88,7 @@ class SOTCommandInfo:
         self.stderr = None
 
 
-    def print_cmd(self):
+    def print_cmd(self) -> None:
         """ Prints the command's information. """
 
         print("Session id:", self.session_id)
@@ -116,7 +132,10 @@ class SOTClient(BlockingKernelClient):
         """
 
         # Setting up and starting the communication with the kernel
-        self.load_connection_file(get_latest_connection_file_path())
+        connection_file_path = get_latest_connection_file_path()
+        if connection_file_path is None:
+            raise ValueError("Could not connect to the kernel: no connection file found.")
+        self.load_connection_file(connection_file_path)
         self.start_channels()
         
 
@@ -124,7 +143,7 @@ class SOTClient(BlockingKernelClient):
         self.stop_channels()
 
 
-    def is_kernel_alive(self):
+    def is_kernel_alive(self) -> bool:
         """ Returns True if activity is detected on the heartbeat of the
             kernel this session is connected to.
         """
@@ -132,23 +151,22 @@ class SOTClient(BlockingKernelClient):
         # TODO: listen to the kernel's heartbeat on the hb channel
 
 
-    def reconnect_to_kernel(self):
+    def reconnect_to_kernel(self) -> None:
         """ Reconnects this client to the latest kernel """
         raise NotImplementedError
         # TODO
 
 
-    def is_response_to_self(self, response):
+    def is_response_to_self(self, response: Dict) -> bool:
         """ Returns True if the `response` argument is a response to a request
             sent by the current client session.
         """
-        if self.session_id == response["parent_header"]["session"]:
-            return True
+        return self.session_id == response["parent_header"]["session"]
 
 
-    def save_response(self, response):
+    def save_response(self, response: Dict) -> SOTCommandInfo:
         """ Saves the `response`'s information as part of a `SOTCommandInfo`'s
-            attributes in `self.cmd_history` and returns the created or modified
+            attribute in the command history and returns the created or modified
             `SOTCommandInfo`.
             Each response contains the `SOTCommandInfo`'s `session_id` and `id`,
             in addition to either `content`, `result`, `stdout` or `stderr`. Hence,
@@ -197,7 +215,7 @@ class SOTClient(BlockingKernelClient):
         return cmd
 
 
-    def get_cmd_by_id(self, id):
+    def get_cmd_by_id(self, id: str) -> Union[SOTCommandInfo, None]:
         """ Looks for the command in the history and returns it if it was
             found. Else, returns None.
             - id (str): the id of the client's request containing the command
@@ -208,7 +226,7 @@ class SOTClient(BlockingKernelClient):
         return None
 
 
-    def print_history(self, history=None):
+    def print_history(self, history: List[SOTCommandInfo] = None) -> None:
         """ Prints the infomation of each command of `history`,
             which defaults to `self.cmd_history`.
         """
@@ -220,14 +238,14 @@ class SOTClient(BlockingKernelClient):
             print()
 
 
-    def print_self_history(self):
+    def print_self_history(self) -> None:
         """ Prints the infomation of each command of `self.cmd_history`.
         """
         self_history = self.get_self_history()
         self.print_history(self_history)
 
 
-    def get_self_history(self):
+    def get_self_history(self) -> List[SOTCommandInfo]:
         """ Returns a filtered copy of self.cmd_history by keeping
             only the commands that were sent by the current session.
         """
@@ -235,9 +253,10 @@ class SOTClient(BlockingKernelClient):
         for cmd in self.cmd_history:
             if cmd.session_id == self.session_id:
                 self_history.append(cmd)
+        return self_history
 
 
-    def run_python_command(self, cmd):
+    def run_python_command(self, cmd: str) -> SOTCommandInfo:
         """ This is a blocking function that sends a command to the kernel and 
             waits for it to respond completely (see link to the doc on messaging
             with jupyter for every step), while saving each response into a new
@@ -274,7 +293,7 @@ class SOTClient(BlockingKernelClient):
         return cmd_info
 
 
-    def run_local_python_script(self, filepath):
+    def run_local_python_script(self, filepath: str) -> None:
         """ Runs a python script on the kernel.
             - filepath (str): the script's path. It must be either absolute
             (on the same machine as the client), or relative to the
@@ -288,7 +307,7 @@ class SOTClient(BlockingKernelClient):
             print("Could not execute script: file " + filepath + " does not exist.")
 
 
-    def run_kernel_side_python_script(self, filepath):
+    def run_kernel_side_python_script(self, filepath: str) -> None:
         """ Runs a python script on the kernel.
             - filepath (str): the script's path. It must be either absolute
             (on the same machine as the kernel), or relative to the directory
