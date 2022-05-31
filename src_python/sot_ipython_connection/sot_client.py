@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 from os.path import exists
 
 from pathlib import Path
@@ -29,82 +29,89 @@ def get_latest_connection_file_path() -> Union[str, None]:
     return max(connection_files, key=lambda x: x.stat().st_ctime)
 
 
+class SOTCommandError:
+    """ Represents an error sent by the kernel in response to a client's
+        command.
+
+        Public methods:
+        - `traceback()`: returns the exception's formatted traceback.
+        - `name()`: returns the exception's name.
+        - `value()`: returns the exception's value.
+    """
+    def __init__(self):
+        self._traceback: str = None
+        self._name: str = None
+        self._value: str = None
+
+
+    def __str__(self):
+        return self.traceback
+    def __repr__(self):
+        return f"_name: {self._name}\n_value: {self._value}\n\
+                _traceback: {self._traceback}\n"
+
+
+    def traceback(self) -> str:
+        return self._traceback
+    def name(self) -> str:
+        return self._name
+    def value(self) -> str:
+        return self._value
+
+
 class SOTCommandInfo:
-    """ Represents a command and its information:
-        - self.id (str):
-          The id of the request containing the command.
-        - self.session_id (str):
-          The id of the client session that sent the request.
-        - self.content (str):
-          The content of the command.
-        - self.result (any type, optional):
-          The result sent by the kernel if the request was of the `execute_input`
-          type (e.g '2+2'). If the kernel's result is not parsable by `eval()`,
-          it will be stored unparsed.
-        - self.stdout (str, optional):
-          The output sent by the kernel if its response was of the `stream` type
-          (e.g a response to the command "print('hello')" which has a type
-          `execute_request`).
-        - self.stderr (SOTCommandError, optional):
-          The error sent by the kernel in response to this command.
+    """ Represents a command and its information.
+
+    Public attributes:
+        - `id` (`str`): id of the request containing the command.
+        - `session_id` (`str`): id of the client session that sent the request.
+        - `content` (`str`): content of the command.
+        - `result` (`Any`, optional): result sent by the kernel if the request
+          was of the `execute_input` type (e.g '2+2'). If the kernel's result is not
+          parsable by `eval()`, it will be stored unparsed.
+        - `stdout` (`str`, optional): output sent by the kernel if its response was of
+          the `stream` type (e.g a response to the command "print('hello')" which
+          has a type `execute_request`).
+        - `stderr` (`SOTCommandError`, optional): error sent by the kernel in response
+          to this command.
     """
 
-    class SOTCommandError:
-        """ Represents an error sent by the kernel in response to a client's
-            command.
-
-            Public methods:
-            - `traceback()`: returns the exception's formatted traceback.
-            - `name()`: returns the exception's name.
-            - `value()`: returns the exception's value.
-        """
-        def __init__(self):
-            self._traceback: str = None
-            self._name: str = None
-            self._value: str = None
+    def __init__(self, id: str, session_id: str):
+        self.session_id = session_id
+        self.id = id
+        self.content: str = None
+        self.result: Any = None
+        self.stdout: str = None
+        self.stderr: SOTCommandError = None
 
 
-        def __str__(self):
-            return self.traceback
-        def __repr__(self):
-            return f"_name: {self._name}\n_value: {self._value}\n\
-                    _traceback: {self._traceback}\n"
-
-
-        def traceback(self) -> str:
-            return self._traceback
-        def name(self) -> str:
-            return self._name
-        def value(self) -> str:
-            return self._value
-
-
-    def __init__(self):
-        self.session_id = None
-        self.id = None
-        self.content = None
-        self.result = None
-        self.stdout = None
-        self.stderr = None
-
-
-    def print_cmd(self) -> None:
-        """ Prints the command's information. """
-
-        print("Session id:", self.session_id)
-        print("Command id:", self.id)
-        print("Command:")
-        print(f"`{self.content}`")
+    def __str__(self):
+        string = ""
+        string += f"Session id: {self.session_id}\n"
+        string += f"Command id: {self.id}\n"
+        string += f"Command: {self.content}\n"
         if self.result:
-            print("Result:")
-            print(type(self.result))
-            print(self.result)
+            string += f"Result: {self.result} ({type(self.result)})\n"
         if self.stdout:
-            print("Output:")
-            print(f"`{self.stdout}`")
+            string += f"Output: `{self.stdout}`\n"
         if self.stderr:
-            print("Error output:")
-            print(self.stderr.traceback)
+            string += f"Error output: {self.stderr.traceback}\n"
+        return string
+
+
+    def __repr__(self):
+        string = ""
+        string += f"session_id: {self.session_id}\n"
+        string += f"id: {self.id}\n"
+        string += f"content: {self.content}\n"
+        if self.result:
+            string += f"result: {self.result} ({type(self.result)})\n"
+        if self.stdout:
+            string += f"stdout: `{self.stdout}`\n"
+        if self.stderr:
+            string += "stderr:\n"
+            repr(self.stderr)
+        return string
 
 
 class SOTClient(BlockingKernelClient):
@@ -179,9 +186,9 @@ class SOTClient(BlockingKernelClient):
         is_new_cmd = False
         if cmd == None:
             is_new_cmd = True
-            cmd = SOTCommandInfo()
-            cmd.session_id = response["parent_header"]["session"]
-            cmd.id = response["parent_header"]["msg_id"]
+            session_id = response["parent_header"]["session"]
+            id = response["parent_header"]["msg_id"]
+            cmd = SOTCommandInfo(id, session_id)
         
         # Saving the command's content
         if response["msg_type"] == "execute_input":
@@ -203,7 +210,7 @@ class SOTClient(BlockingKernelClient):
 
         # Saving the command's error
         if response["msg_type"] == "error":
-            cmd.stderr = cmd.SOTCommandError()
+            cmd.stderr = SOTCommandError()
             cmd.stderr.name = response["content"]["ename"]
             cmd.stderr.value = response["content"]["evalue"]
             cmd.stderr.traceback = '\n'.join(response["content"]["traceback"])
@@ -234,8 +241,7 @@ class SOTClient(BlockingKernelClient):
             history = self.cmd_history
 
         for cmd in history:
-            cmd.print_cmd()
-            print()
+            print(str(cmd) + '\n')
 
 
     def print_self_history(self) -> None:
