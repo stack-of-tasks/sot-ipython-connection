@@ -1,5 +1,8 @@
-from time import sleep
 from typing import Dict
+from os import kill
+import errno
+from time import sleep
+from multiprocessing import Process
 
 from ipykernel.kernelapp import launch_new_instance
 
@@ -53,25 +56,53 @@ class SOTKernel:
             namespace and ports, in a subprocess. This subprocess is terminated
             when the `SOTKernel` object is destroyed.
         """
-        # TODO
-        ... # allow only one run 
+
+        # Only one instance of the kernel can run at a time:
+        if self._kernel_pid is not None:
+            print('A non-blocking instance of this kernel is already running.')
+            return
+        
+        # Launching a new instance in another process.
+        # Thanks to the daemon option, when the parent process exits, it will try to
+        # terminate the child process (in case the parent is not properly stopped and
+        # __del__ is not called)
+        self._process = Process(target=self.run, daemon=True, name='sotkernel')
+        self._process.start()
+
+
+    def _terminate_kernel_subprocess(self) -> None:
+        for _ in range(5):
+            if self._process.is_alive():
+                self._process.terminate()
+                sleep(0.1)
+            else:
+                break
+        if self._process.is_alive():
+            for _ in range(5):
+                if self._process.is_alive():
+                    self._process.kill()
+                    sleep(0.1)
+                else:
+                    break
+        self._process.join()
+
+
+    def _subprocess_kernel_is_running(self) -> bool:
+        """ Returns True if there is an instance of this kernel currently running
+            in another process.
+        """
+        # TODO: stop the process and update the _kernel_pid to None if the kernel
+        # is not running anymore
+
+        # Cheking if a subprocess was launched:
+        if self._process is None:
+            return False
+
+        return self._process.is_alive()
 
 
     def __del__(self):
-        # TODO
-        ...
-        # if self._kernel_pid is not None:
-        #     for _ range(5):
-        #         if self._kernel_pid.is_alive():
-        #             self._kernel_pid.terminate()
-        #             sleep(0.1)
-        #         else:
-        #             break
-        #     if self._kernel_pid.is_alive():
-        #         for _ range(5):
-        #         if self._kernel_pid.is_alive():
-        #             self._kernel_pid.kill()
-        #             sleep(0.1)
-        #         else:
-        #             break
-        #     self._kernel_pid.join()
+        # Terminating the subprocess in which the kernel is running, if any:
+        if self._subprocess_kernel_is_running():
+            print('running')
+            self._terminate_kernel_subprocess()
