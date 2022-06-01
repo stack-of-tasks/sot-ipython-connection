@@ -305,7 +305,7 @@ class SOTClient(BlockingKernelClient):
                     and self._is_response_to_self(response):
                     whole_response_received = True
 
-            except: # Entered when there is no more reponses to get
+            except: # Entered when there was no response to read yet
                 ...
 
         return cmd_info

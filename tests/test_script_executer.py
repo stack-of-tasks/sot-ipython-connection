@@ -107,12 +107,13 @@ class TestScriptExecuter(TestCase):
         # Getting the test script's path (relative to where the client was launched)
         new_path_to_test_script_dir = str(PurePosixPath(input_scripts_dir).
             relative_to(Path.cwd()))
-        
-        script_path = str(Path(new_path_to_test_script_dir)/'script_test_6.py')
-        script_executer([script_path, '-l'])
 
-        script_path = str(Path(new_path_to_test_script_dir)/'script_test_7.py')
-        script_executer(['--local', script_path])
+        script_paths = [
+            str(Path(new_path_to_test_script_dir)/'script_test_6.py'),
+            str(Path(new_path_to_test_script_dir)/'script_test_7.py')
+        ]
+        
+        script_executer(script_paths + ['--local'])
 
         kernel_client.run_python_command("script_var_7")
         kernel_client.run_python_command("script_var_8")
