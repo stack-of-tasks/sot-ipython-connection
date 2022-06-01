@@ -1,6 +1,4 @@
 from typing import Dict
-from os import kill
-import errno
 from time import sleep
 from multiprocessing import Process
 
@@ -8,6 +6,7 @@ from ipykernel.kernelapp import launch_new_instance
 
 from sot_ipython_connection.connection_config import connection_config
 from sot_ipython_connection.kernel_namespace_config import kernel_namespace
+
 
 class SOTKernel:
     """ A configurable ipython kernel to work with the Stack of Tasks. """
@@ -28,8 +27,8 @@ class SOTKernel:
         # Configurable in kernel_namespace_config.py:
         self._namespace: Dict = kernel_namespace
 
-        # Pid of the subprocess the kernel is launched in in case of a non-blocking run:
-        self._kernel_pid = None
+        # Subprocess the kernel is launched in in case of a non-blocking run:
+        self._process = None
 
 
     def run(self) -> None:
@@ -58,7 +57,7 @@ class SOTKernel:
         """
 
         # Only one instance of the kernel can run at a time:
-        if self._kernel_pid is not None:
+        if self._process is not None:
             print('A non-blocking instance of this kernel is already running.')
             return
         
@@ -91,7 +90,7 @@ class SOTKernel:
         """ Returns True if there is an instance of this kernel currently running
             in another process.
         """
-        # TODO: stop the process and update the _kernel_pid to None if the kernel
+        # TODO: stop the process and update self._process to None if the kernel
         # is not running anymore
 
         # Cheking if a subprocess was launched:
