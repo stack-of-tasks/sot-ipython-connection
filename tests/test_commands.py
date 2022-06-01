@@ -1,10 +1,10 @@
 from unittest import TestCase
-import time
-from subprocess import Popen
 
-from pathlib import Path
-
+from sot_ipython_connection.sot_kernel import SOTKernel
 from sot_ipython_connection.sot_client import SOTClient
+
+import nest_asyncio
+nest_asyncio.apply()
 
 
 class TestCommands(TestCase):
@@ -12,20 +12,13 @@ class TestCommands(TestCase):
     @classmethod
     def setup_class(self):
         # Launching the kernel in a subprocess
-        interpreter_path = (
-            Path(__file__).resolve().parent.parent/
-                'src_python'/'sot_ipython_connection'/'app'/'sot_interpreter.py'
-        )
-        self.kernel_process = Popen(["python3", interpreter_path])
-        time.sleep(5)
+        self._kernel = SOTKernel()
+        self._kernel.run_non_blocking()
 
     @classmethod
     def teardown_class(self):
-        # Terminating and killing the kernel's subprocess
-        self.kernel_process.terminate()
-        self.kernel_process.wait(10)
-        self.kernel_process.kill()
-        self.kernel_process.wait(10)
+        # Terminating the kernel's subprocess
+        self._kernel._terminate_kernel_subprocess()
 
 
     def test_var_definition(self):
