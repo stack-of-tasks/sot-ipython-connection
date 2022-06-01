@@ -14,6 +14,13 @@ class SOTKernel:
         # Configurable in connection_config.py:
         self._connectionConfig: Dict = connection_config
 
+        # Checking if all the required options are in self._connectionConfig:
+        required_options = ["shell_port", "iopub_port", "stdin_port", "control_port",
+            "hb_port", "ip", "transport", "signature_scheme"]
+        for option in required_options:
+            if option not in self._connectionConfig:
+                raise KeyError(f"{option} could not be found in connection_config.py")
+
         # The variables the kernel will be initialized with when launched.
         # Configurable in kernel_namespace_config.py:
         self._namespace: Dict = kernel_namespace

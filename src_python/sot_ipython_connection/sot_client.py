@@ -142,7 +142,7 @@ class SOTClient(BlockingKernelClient):
         # Setting up and starting the communication with the kernel:
         connection_file_path = get_latest_connection_file_path()
         if connection_file_path is None:
-            raise ValueError("Could not connect to the kernel: no connection file found.")
+            raise FileNotFoundError("Could not connect to the kernel: no connection file found.")
         self.load_connection_file(connection_file_path)
         self.start_channels()
         
