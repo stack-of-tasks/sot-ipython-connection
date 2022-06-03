@@ -1,32 +1,15 @@
-from unittest import TestCase
 import os
 from pathlib import PurePosixPath, Path
 
-from sot_ipython_connection.sot_kernel import SOTKernel
 from sot_ipython_connection.sot_client import SOTClient
 from sot_ipython_connection.app.sot_script_executer import main as script_executer
+from .base_test_class import BaseTestClass, input_scripts_dir
 
 import nest_asyncio
 nest_asyncio.apply()
 
 
-current_script_directory = str(Path(__file__).resolve().parent)
-input_scripts_dir = str(Path(__file__).resolve().parent/'input_scripts')
-
-
-class TestScriptExecuter(TestCase):
-
-    @classmethod
-    def setup_class(self):
-        # Launching the kernel in a subprocess
-        self._kernel = SOTKernel()
-        self._kernel.run_non_blocking()
-
-    @classmethod
-    def teardown_class(self):
-        # Terminating the kernel's subprocess
-        self._kernel._terminate_kernel_subprocess()
-
+class TestScriptExecuter(BaseTestClass):
 
     def test_var_definition(self):
         kernel_client = SOTClient()

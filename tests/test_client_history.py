@@ -1,25 +1,11 @@
-from unittest import TestCase
-
-from sot_ipython_connection.sot_kernel import SOTKernel
 from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandError
+from .base_test_class import BaseTestClass
 
 import nest_asyncio
 nest_asyncio.apply()
 
 
-class TestClientHistory(TestCase):
-
-    @classmethod
-    def setup_class(self):
-        # Launching the kernel in a subprocess
-        self._kernel = SOTKernel()
-        self._kernel.run_non_blocking()
-
-    @classmethod
-    def teardown_class(self):
-        # Terminating the kernel's subprocess
-        self._kernel._terminate_kernel_subprocess()
-
+class TestClientHistory(BaseTestClass):
 
     def test_no_cmd(self):
         kernel_client = SOTClient()
