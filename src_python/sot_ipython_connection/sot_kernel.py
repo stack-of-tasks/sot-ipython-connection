@@ -90,9 +90,6 @@ class SOTKernel:
         """ Returns True if there is an instance of this kernel currently running
             in another process.
         """
-        # TODO: stop the process and update self._process to None if the kernel
-        # is not running anymore
-
         # Cheking if a subprocess was launched:
         if self._process is None:
             return False
