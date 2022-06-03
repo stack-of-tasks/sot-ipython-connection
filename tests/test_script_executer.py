@@ -1,37 +1,12 @@
-from unittest import TestCase
 import os
-import time
 from pathlib import PurePosixPath, Path
-from subprocess import Popen
 
 from sot_ipython_connection.sot_client import SOTClient
 from sot_ipython_connection.app.sot_script_executer import main as script_executer
+from .base_test_class import BaseTestClass, input_scripts_dir
 
 
-current_script_directory = str(Path(__file__).resolve().parent)
-input_scripts_dir = str(Path(__file__).resolve().parent/'input_scripts')
-
-
-class TestScriptExecuter(TestCase):
-
-    @classmethod
-    def setup_class(self):
-        # Launching the kernel in a subprocess
-        interpreter_path = (
-            Path(__file__).resolve().parent.parent/
-                'src_python'/'sot_ipython_connection'/'app'/'sot_interpreter.py'
-        )
-        self.kernel_process = Popen(["python3", interpreter_path])
-        time.sleep(5)
-
-    @classmethod
-    def teardown_class(self):
-        # Terminating and killing the kernel's subprocess
-        self.kernel_process.terminate()
-        self.kernel_process.wait(10)
-        self.kernel_process.kill()
-        self.kernel_process.wait(10)
-
+class TestScriptExecuter(BaseTestClass):
 
     def test_var_definition(self):
         kernel_client = SOTClient()
