@@ -1,5 +1,4 @@
 from typing import Dict
-from time import sleep
 from multiprocessing import Process
 
 from ipykernel.kernelapp import launch_new_instance
@@ -12,6 +11,7 @@ class SOTKernel:
     """ A configurable ipython kernel to work with the Stack of Tasks. """
     
     def __init__(self):
+
         # The kernel's connection information (ports, ip...).
         # Configurable in connection_config.py:
         self._connectionConfig: Dict = connection_config
@@ -35,6 +35,7 @@ class SOTKernel:
         """ Launches a new instance of a kernel, with the configured
             namespace and ports. This is a blocking call.
         """
+
         # List of the kernel's options:
         # https://ipython.readthedocs.io/en/7.23.0/config/options/kernel.html
         launch_new_instance(
@@ -73,17 +74,16 @@ class SOTKernel:
         for _ in range(5):
             if self._process.is_alive():
                 self._process.terminate()
-                sleep(0.1)
+                self._process.join()
             else:
                 break
         if self._process.is_alive():
             for _ in range(5):
                 if self._process.is_alive():
                     self._process.kill()
-                    sleep(0.1)
+                    self._process.join()
                 else:
                     break
-        self._process.join()
 
 
     def _subprocess_kernel_is_running(self) -> bool:
@@ -103,5 +103,4 @@ class SOTKernel:
     def __del__(self):
         # Terminating the subprocess in which the kernel is running, if any:
         if self._subprocess_kernel_is_running():
-            print('running')
             self._terminate_kernel_subprocess()
