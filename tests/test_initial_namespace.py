@@ -1,9 +1,6 @@
 from sot_ipython_connection.sot_client import SOTClient
 from .base_test_class import BaseTestClass
 
-import nest_asyncio
-nest_asyncio.apply()
-
 
 class TestInitialNamespace(BaseTestClass):
 

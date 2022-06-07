@@ -1,9 +1,6 @@
 from src_python.sot_ipython_connection.sot_client import SOTClient, SOTCommandError
 from .base_test_class import BaseTestClass
 
-import nest_asyncio
-nest_asyncio.apply()
-
 
 class TestClientHistory(BaseTestClass):
 

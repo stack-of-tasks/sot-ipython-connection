@@ -5,9 +5,6 @@ from sot_ipython_connection.sot_client import SOTClient
 from sot_ipython_connection.app.sot_script_executer import main as script_executer
 from .base_test_class import BaseTestClass, input_scripts_dir
 
-import nest_asyncio
-nest_asyncio.apply()
-
 
 class TestScriptExecuter(BaseTestClass):
 
