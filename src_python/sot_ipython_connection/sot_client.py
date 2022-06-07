@@ -155,8 +155,7 @@ class SOTClient(BlockingKernelClient):
         """ Returns True if activity is detected on the heartbeat of the
             kernel this session is connected to.
         """
-        raise NotImplementedError
-        # TODO: listen to the kernel's heartbeat on the hb channel
+        return self.is_alive()
 
 
     def reconnect_to_kernel(self) -> None:
