@@ -139,12 +139,7 @@ class SOTClient(BlockingKernelClient):
         # self.get_self_history currently has no use, as self.cmd_history only store this
         # session's commands.
 
-        # Setting up and starting the communication with the kernel:
-        connection_file_path = get_latest_connection_file_path()
-        if connection_file_path is None:
-            raise FileNotFoundError("Could not connect to the kernel: no connection file found.")
-        self.load_connection_file(connection_file_path)
-        self.start_channels()
+        self.connect_to_kernel()
         
 
     def __del__(self):
@@ -158,10 +153,18 @@ class SOTClient(BlockingKernelClient):
         return self.is_alive()
 
 
-    def reconnect_to_kernel(self) -> None:
-        """ Reconnects this client to the latest kernel. """
-        raise NotImplementedError
-        # TODO
+    def connect_to_kernel(self) -> None:
+        """ Connects this client to the latest kernel. """
+
+        # Getting the latest kernel's connection file:
+        connection_file_path = get_latest_connection_file_path()
+        if connection_file_path is None:
+            raise FileNotFoundError("Could not connect to the kernel: no connection\
+                file found.")
+
+        # Connecting to the kernel:
+        self.load_connection_file(connection_file_path)
+        self.start_channels()
 
 
     def _is_response_to_self(self, response: Dict) -> bool:
