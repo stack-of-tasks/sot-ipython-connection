@@ -1,7 +1,6 @@
 import sys
 
 from argparse import ArgumentParser
-from turtle import Vec2D
 from typing import List
 
 from sot_ipython_connection.sot_client import SOTClient
