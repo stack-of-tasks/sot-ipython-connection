@@ -281,8 +281,9 @@ class SOTClient(BlockingKernelClient):
     def check_connection(self) -> None:
         # Waiting for the connection to finish if it's new:
         for _ in range(10):
-            if not self.is_kernel_alive():
-                sleep(0.5)
+            if self.is_kernel_alive():
+                break
+            sleep(0.5)
 
         # It the connection is still not working:
         if not self.is_kernel_alive():
