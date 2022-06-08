@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Union
 from pathlib import Path
 
+from time import sleep
 from pathlib import Path
 import nest_asyncio
 import jupyter_core
@@ -277,6 +278,17 @@ class SOTClient(BlockingKernelClient):
         return self_history
 
 
+    def check_connection(self) -> None:
+        # Waiting for the connection to finish if it's new:
+        for _ in range(10):
+            if not self.is_kernel_alive():
+                sleep(0.5)
+
+        # It the connection is still not working:
+        if not self.is_kernel_alive():
+            raise ConnectionError('Connection to kernel is closed')
+
+
     def run_python_command(self, cmd: str) -> SOTCommandInfo:
         """ This is a blocking function that sends a command to the kernel and 
             waits for it to respond completely (see link to the doc on messaging
@@ -287,9 +299,8 @@ class SOTClient(BlockingKernelClient):
             Arguments:
             - `cmd`: the command to be sent to the kernel
         """
-        # Checking if the connectin to the kernel is still open
-        if not self.is_kernel_alive():
-            raise ConnectionError('Connection to kernel is closed')
+        # Checking if the connection to the kernel is ready / still open
+        self.check_connection()
 
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
