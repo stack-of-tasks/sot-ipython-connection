@@ -287,7 +287,7 @@ class SOTClient(BlockingKernelClient):
 
         # It the connection is still not working:
         if not self.is_kernel_alive():
-            raise ConnectionError('Connection to kernel is closed')
+            raise ConnectionError('No connection to kernel')
 
 
     def run_python_command(self, cmd: str) -> SOTCommandInfo:
