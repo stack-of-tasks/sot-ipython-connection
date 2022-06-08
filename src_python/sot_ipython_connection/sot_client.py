@@ -154,7 +154,11 @@ class SOTClient(BlockingKernelClient):
 
 
     def connect_to_kernel(self) -> None:
-        """ Connects this client to the latest kernel. """
+        """ Connects this client to the latest kernel. This method can only be called
+            once: if the channels have been stopped and `start_channels` is called,
+            RuntimeError will be raised.
+            https://ipython.org/ipython-doc/3/api/generated/IPython.kernel.client.html
+        """
 
         # Getting the latest kernel's connection file:
         connection_file_path = get_latest_connection_file_path()
@@ -283,9 +287,9 @@ class SOTClient(BlockingKernelClient):
             Arguments:
             - `cmd`: the command to be sent to the kernel
         """
-        # Checking if the kernel is still alive
+        # Checking if the connectin to the kernel is still open
         if not self.is_kernel_alive():
-            raise ConnectionError('Kernel is not running')
+            raise ConnectionError('Connection to kernel is closed')
 
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
