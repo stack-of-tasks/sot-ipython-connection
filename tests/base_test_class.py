@@ -30,15 +30,33 @@ input_scripts_dir = str(Path(__file__).resolve().parent/'input_scripts')
 
 class BaseTestClass(TestCase):
 
-    @classmethod
-    def setup_class(self):
+    # @classmethod
+    # def setup_class(self):
+    #     # Launching the kernel in a subprocess
+    #     self._kernel = SOTKernel()
+    #     self._kernel.run_non_blocking()
+
+    # @classmethod
+    # def teardown_class(self):
+    #     # Terminating the kernel's subprocess
+    #     del self._kernel
+    #     sleep(1)
+
+    def setup_method(self, method):
+        write_in_logs('setup_method\n')
         # Launching the kernel in a subprocess
         self._kernel = SOTKernel()
         self._kernel.run_non_blocking()
+        sleep(1)
 
-    @classmethod
-    def teardown_class(self):
+
+    def teardown_method(self, method):
+        write_in_logs('teardown_method\n')
         # Terminating the kernel's subprocess
         del self._kernel
         sleep(1)
-    
+
+
+def write_in_logs(str):
+    with open('logs', 'a') as f:
+        f.write(str)
