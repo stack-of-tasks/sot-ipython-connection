@@ -140,7 +140,7 @@ class SOTClient(BlockingKernelClient):
         # self.get_self_history currently has no use, as self.cmd_history only store this
         # session's commands.
 
-        self.connect_to_kernel()
+        print(self.connect_to_kernel())
         
 
     def __del__(self):
@@ -154,22 +154,34 @@ class SOTClient(BlockingKernelClient):
         return self.is_alive()
 
 
-    def connect_to_kernel(self) -> None:
-        """ Connects this client to the latest kernel. This method can only be called
-            once: if the channels have been stopped and `start_channels` is called,
-            RuntimeError will be raised.
+    def connect_to_kernel(self) -> bool:
+        """ Connects this client to the latest kernel. This method can only be
+            called once: if the channels have been stopped and `start_channels
+            is called, RuntimeError will be raised.
             https://ipython.org/ipython-doc/3/api/generated/IPython.kernel.client.html
+            If a connection could be established, `True` is returned, `False` if not.
         """
 
         # Getting the latest kernel's connection file:
         connection_file_path = get_latest_connection_file_path()
         if connection_file_path is None:
-            raise FileNotFoundError("Could not connect to the kernel: no connection\
-                file found.")
+            print("Could not connect to the kernel: no connection file found.")
+            return False
 
         # Connecting to the kernel:
         self.load_connection_file(connection_file_path)
         self.start_channels()
+
+        # We have to wait for the channels to finish opening before testing the
+        # connection or the kernel will appear as alive even if it's not:
+        sleep(1)
+        try:
+            self.check_connection()
+        except:
+            print('Connection failed: kernel is not alive.')
+            return False
+        
+        return True
 
 
     def _is_response_to_self(self, response: Dict) -> bool:
