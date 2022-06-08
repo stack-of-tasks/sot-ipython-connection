@@ -283,6 +283,9 @@ class SOTClient(BlockingKernelClient):
             Arguments:
             - `cmd`: the command to be sent to the kernel
         """
+        # Checking if the kernel is still alive
+        if not self.is_kernel_alive():
+            raise ConnectionError('Kernel is not running')
 
         # Sending the command to the kernel
         msg_id = self.execute(cmd)
