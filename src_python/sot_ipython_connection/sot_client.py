@@ -129,6 +129,7 @@ class SOTClient(BlockingKernelClient):
     """
     
     def __init__(self):
+        super().__init__()
         self.session_id: str = self.session.session
         self.cmd_history: List[SOTCommandInfo] = []
         # TODO: the get_iopub_msg() call used in run_python_command returns responses to
@@ -144,7 +145,9 @@ class SOTClient(BlockingKernelClient):
         
 
     def __del__(self):
-        self.stop_channels()
+        if self.channels_running:
+            self.stop_channels()
+        super().__del__()
 
 
     def is_kernel_alive(self) -> bool:
