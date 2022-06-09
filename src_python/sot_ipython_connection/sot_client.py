@@ -291,6 +291,9 @@ class SOTClient(BlockingKernelClient):
 
 
     def check_connection(self) -> None:
+        """ Waits up to 5s for the connection to the kernel to complete, and raises
+            a ConnectionError if it doesn't.
+        """
         # Waiting for the connection to finish if it's new:
         for _ in range(10):
             if self.is_kernel_alive():
@@ -306,8 +309,9 @@ class SOTClient(BlockingKernelClient):
         """ This is a blocking function that sends a command to the kernel and 
             waits for it to respond completely (see link to the doc on messaging
             with jupyter for every step), while saving each response into a new
-            instance of SOTCommandInfo in self.cmd_history.
+            instance of `SOTCommandInfo` in the command history.
             It then returns this new instance.
+            Raises a `ConnectionError` if the connection to the kernel is not open.
 
             Arguments:
             - `cmd`: the command to be sent to the kernel
