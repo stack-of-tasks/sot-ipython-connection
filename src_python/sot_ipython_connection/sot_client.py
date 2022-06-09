@@ -140,7 +140,7 @@ class SOTClient(BlockingKernelClient):
         # self.get_self_history currently has no use, as self.cmd_history only store this
         # session's commands.
 
-        print(self.connect_to_kernel())
+        self.connect_to_kernel()
         
 
     def __del__(self):
@@ -165,7 +165,7 @@ class SOTClient(BlockingKernelClient):
         # Getting the latest kernel's connection file:
         connection_file_path = get_latest_connection_file_path()
         if connection_file_path is None:
-            print("Could not connect to the kernel: no connection file found.")
+            print("SOTClient.connect_to_kernel: connection failed (no connection file found)")
             return False
 
         # Connecting to the kernel:
@@ -177,8 +177,8 @@ class SOTClient(BlockingKernelClient):
         sleep(1)
         try:
             self.check_connection()
-        except:
-            print('Connection failed: kernel is not alive.')
+        except ConnectionError:
+            print('SOTClient.connect_to_kernel: connection failed (kernel is not alive).')
             return False
         
         return True
@@ -291,11 +291,11 @@ class SOTClient(BlockingKernelClient):
 
 
     def check_connection(self) -> None:
-        """ Waits up to 5s for the connection to the kernel to complete, and raises
+        """ Waits up to 2s for the connection to the kernel to complete, and raises
             a ConnectionError if it doesn't.
         """
         # Waiting for the connection to finish if it's new:
-        for _ in range(10):
+        for _ in range(4):
             if self.is_kernel_alive():
                 break
             sleep(0.5)
