@@ -39,6 +39,7 @@ class SOTCommandError:
         - `name()`: returns the exception's name.
         - `value()`: returns the exception's value.
     """
+
     def __init__(self):
         self._traceback: str = None
         self._name: str = None
@@ -115,9 +116,8 @@ class SOTCommandInfo:
         return string
 
 
-class SOTClient(BlockingKernelClient):
-    """ (Inherits BlockingKernelClient)
-        An ipython client with blocking APIs to communicate with a SOTKernel.
+class SOTClient():
+    """ An ipython client with blocking APIs to communicate with a SOTKernel.
 
         Public attributes:
         - `session_id` (`str`): the client's current session id. If the client
@@ -129,8 +129,14 @@ class SOTClient(BlockingKernelClient):
     """
     
     def __init__(self):
-        super().__init__()
-        self.session_id: str = self.session.session
+        # We have to store an instance of BlockingKernelClient as an attribute instead
+        # of inheriting from it, because the channels of a client cannot be started twice,
+        # even after stopping them:
+        # https://ipython.org/ipython-doc/3/api/generated/IPython.kernel.client.html
+        # Inheriting would mean having to create a new SOTClient at every reconnection.
+        self._client: BlockingKernelClient = None
+        self.session_id: str = None
+
         self.cmd_history: List[SOTCommandInfo] = []
         # TODO: the get_iopub_msg() call used in run_python_command returns responses to
         # every client (session) connected to the kernel.
@@ -145,25 +151,27 @@ class SOTClient(BlockingKernelClient):
         
 
     def __del__(self):
-        if self.channels_running:
-            self.stop_channels()
-        super().__del__()
+        self._stop_client()
 
 
     def is_kernel_alive(self) -> bool:
-        """ Returns True if activity is detected on the heartbeat of the
+        """ Returns `True` if activity is detected on the heartbeat of the
             kernel this session is connected to.
         """
-        return self.is_alive()
-
+        return self._client.is_alive()
+        
 
     def connect_to_kernel(self) -> bool:
-        """ Connects this client to the latest kernel. This method can only be
-            called once: if the channels have been stopped and `start_channels
-            is called, RuntimeError will be raised.
-            https://ipython.org/ipython-doc/3/api/generated/IPython.kernel.client.html
-            If a connection could be established, `True` is returned, `False` if not.
+        """ Creates a client and connects it to the latest kernel.
+            `True` is returned if a connection could be established, `False` if not.
+            If a client is already running, it will be stopped and replaced.
         """
+        # Stopping the already running client if needed:
+        self._stop_client()
+
+        # Creating an instance of a client:
+        self._client = BlockingKernelClient()
+        self.session_id = self._client.session.session
 
         # Getting the latest kernel's connection file:
         connection_file_path = get_latest_connection_file_path()
@@ -172,8 +180,8 @@ class SOTClient(BlockingKernelClient):
             return False
 
         # Connecting to the kernel:
-        self.load_connection_file(connection_file_path)
-        self.start_channels()
+        self._client.load_connection_file(connection_file_path)
+        self._client.start_channels()
 
         # We have to wait for the channels to finish opening before testing the
         # connection or the kernel will appear as alive even if it's not:
@@ -185,6 +193,102 @@ class SOTClient(BlockingKernelClient):
             return False
         
         return True
+
+
+    def _stop_client(self) -> None:
+        """ Stop the running client, if any. """
+        if self._client is not None:
+            if self._client.channels_running:
+                self._client.stop_channels()
+            self._client = None
+
+
+    def check_connection(self) -> None:
+        """ Waits up to 2s for the connection to the kernel to complete, and raises
+            a ConnectionError if it doesn't.
+        """
+        # Waiting for the connection to finish if it's new:
+        for _ in range(4):
+            if self.is_kernel_alive():
+                break
+            sleep(0.5)
+
+        # It the connection is still not working:
+        if not self.is_kernel_alive():
+            raise ConnectionError('No connection to kernel')
+
+
+    def run_python_command(self, cmd: str) -> SOTCommandInfo:
+        """ This is a blocking function that sends a command to the kernel and 
+            waits for it to respond completely (see link to the doc on messaging
+            with jupyter for every step), while saving each response into a new
+            instance of `SOTCommandInfo` in the command history.
+            It then returns this new instance.
+            Raises a `ConnectionError` if there is no connection to the kernel.
+
+            Arguments:
+            - `cmd`: the command to be sent to the kernel
+        """
+        if self._client is None:
+            raise ValueError('self._client is None: cannot send command to kernel.')
+
+        # Checking if the connection to the kernel is ready / still open
+        self.check_connection()
+
+        # Sending the command to the kernel
+        msg_id = self._client.execute(cmd)
+        cmd_info = None
+
+        whole_response_received = False
+        while not whole_response_received:
+            try:
+                # iopub is the channel where the kernel broadcasts side-effects
+                # (stderr, stdout, debugging events, its status: busy or idle, etc)
+                # to every client connected to it
+                response = self._client.get_iopub_msg()
+
+                # Saving the response to the command history only if it responds
+                # to our command
+                if response["parent_header"]["msg_id"] == msg_id:
+                    cmd_info = self._save_response(response)
+
+                # We can stop listening to the kernel's responses if it
+                # changes its status to 'idle' in response to our command.
+                if response["content"]["execution_state"] == "idle" \
+                    and self._is_response_to_self(response):
+                    whole_response_received = True
+
+            except: # Entered when there was no response to read yet
+                ...
+
+        return cmd_info
+
+
+    def run_local_python_script(self, filepath: str) -> None:
+        """ Runs a python script on the kernel.
+
+            Arguments:
+            - `filepath`: the script's path. It must be either absolute
+            (on the same machine as the client), or relative to the
+            directory from which the client was launched
+        """
+        if Path(filepath).exists():
+            with open(filepath, 'r') as file:
+                file_content = file.read()
+            self.run_python_command(file_content)
+        else:
+            print("Could not execute script: file " + filepath + " does not exist.")
+
+
+    def run_kernel_side_python_script(self, filepath: str) -> None:
+        """ Runs a python script on the kernel.
+
+            Arguments:
+            - `filepath`: the script's path. It must be either absolute
+            (on the same machine as the kernel), or relative to the directory
+            from which the kernel was launched
+        """
+        self.run_python_command("%run " + str(filepath))
 
 
     def _is_response_to_self(self, response: Dict) -> bool:
@@ -259,6 +363,8 @@ class SOTClient(BlockingKernelClient):
             Arguments:
             - `id`:  id of the client's request containing the command
         """
+
+        # We search from newest to oldest:
         for cmd in reversed(self.cmd_history):
             if cmd.id == id:
                 return cmd
@@ -291,88 +397,3 @@ class SOTClient(BlockingKernelClient):
             if cmd.session_id == self.session_id:
                 self_history.append(cmd)
         return self_history
-
-
-    def check_connection(self) -> None:
-        """ Waits up to 2s for the connection to the kernel to complete, and raises
-            a ConnectionError if it doesn't.
-        """
-        # Waiting for the connection to finish if it's new:
-        for _ in range(4):
-            if self.is_kernel_alive():
-                break
-            sleep(0.5)
-
-        # It the connection is still not working:
-        if not self.is_kernel_alive():
-            raise ConnectionError('No connection to kernel')
-
-
-    def run_python_command(self, cmd: str) -> SOTCommandInfo:
-        """ This is a blocking function that sends a command to the kernel and 
-            waits for it to respond completely (see link to the doc on messaging
-            with jupyter for every step), while saving each response into a new
-            instance of `SOTCommandInfo` in the command history.
-            It then returns this new instance.
-            Raises a `ConnectionError` if the connection to the kernel is not open.
-
-            Arguments:
-            - `cmd`: the command to be sent to the kernel
-        """
-        # Checking if the connection to the kernel is ready / still open
-        self.check_connection()
-
-        # Sending the command to the kernel
-        msg_id = self.execute(cmd)
-        cmd_info = None
-
-        whole_response_received = False
-        while not whole_response_received:
-            try:
-                # iopub is the channel where the kernel broadcasts side-effects
-                # (stderr, stdout, debugging events, its status: busy or idle, etc)
-                # to every client connected to it
-                response = self.get_iopub_msg()
-
-                # Saving the response to the command history only if it responds
-                # to our command
-                if response["parent_header"]["msg_id"] == msg_id:
-                    cmd_info = self._save_response(response)
-
-                # We can stop listening to the kernel's responses if it
-                # changes its status to 'idle' in response to our command.
-                if response["content"]["execution_state"] == "idle" \
-                    and self._is_response_to_self(response):
-                    whole_response_received = True
-
-            except: # Entered when there was no response to read yet
-                ...
-
-        return cmd_info
-
-
-    def run_local_python_script(self, filepath: str) -> None:
-        """ Runs a python script on the kernel.
-
-            Arguments:
-            - `filepath`: the script's path. It must be either absolute
-            (on the same machine as the client), or relative to the
-            directory from which the client was launched
-        """
-        if Path(filepath).exists():
-            with open(filepath, 'r') as file:
-                file_content = file.read()
-            self.run_python_command(file_content)
-        else:
-            print("Could not execute script: file " + filepath + " does not exist.")
-
-
-    def run_kernel_side_python_script(self, filepath: str) -> None:
-        """ Runs a python script on the kernel.
-
-            Arguments:
-            - `filepath`: the script's path. It must be either absolute
-            (on the same machine as the kernel), or relative to the directory
-            from which the kernel was launched
-        """
-        self.run_python_command("%run " + str(filepath))
