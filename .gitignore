@@ -1,3 +1,4 @@
 .ipython
 .coverage
 __pycache__
+logs
