@@ -161,6 +161,9 @@ class SOTClient():
         return self._client.is_alive()
         
 
+    # FIXME: if a new SOTKernel is launched but the connection is not reset
+    # (= new instance of BlockingKernelClient), the kernel and the client will
+    # be unusable (reproducible by launching sot_interpreter and a jupyter console)
     def connect_to_kernel(self) -> bool:
         """ Creates a client and connects it to the latest kernel.
             `True` is returned if a connection could be established, `False` if not.
