@@ -35,6 +35,7 @@ class SOTKernel:
     def run(self) -> None:
         """ Launches a new instance of a kernel, with the configured
             namespace and ports. This is a blocking call.
+            An exception is raised if the ports are already in use.
         """
 
         # List of the kernel's options:
@@ -51,10 +52,12 @@ class SOTKernel:
             signature_scheme = self._connectionConfig.get("signature_scheme")
         )
 
+
     def run_non_blocking(self) -> None:
         """ Launches a new instance of a kernel, with the configured
             namespace and ports, in a subprocess. This subprocess is terminated
             when the `SOTKernel` object is destroyed.
+            An exception is raised if the ports are already in use.
         """
 
         # Only one instance of the kernel can run at a time:
@@ -73,27 +76,17 @@ class SOTKernel:
         while not self._process.is_alive():
             sleep(0.001)
 
-        # Waiting for the kernel's ports to open:
+        # Waiting for all of the kernel's ports to open:
         local_client = SOTClient()
         while not local_client.connect_to_kernel():
             sleep(0.001)
         del local_client
 
 
-    def stop_non_blocking(self):
+    def stop_non_blocking(self) -> None:
         """ Terminates the subprocess in which the kernel is running, if any. """
         if self._subprocess_kernel_is_running():
             self._terminate_kernel_subprocess()
-
-
-    def _terminate_kernel_subprocess(self) -> None:
-        """ Terminates the subprocess in which the kernel is running. """
-        if self._process.is_alive():
-            self._process.terminate()
-            self._process.join()
-            if self._process.is_alive():
-                self._process.kill()
-                self._process.join()
 
         
     def _subprocess_kernel_is_running(self) -> bool:
@@ -105,6 +98,16 @@ class SOTKernel:
             return False
 
         return self._process.is_alive()
+
+
+    def _terminate_kernel_subprocess(self) -> None:
+        """ Terminates the subprocess in which the kernel is running. """
+        if self._process.is_alive():
+            self._process.terminate()
+            self._process.join()
+            if self._process.is_alive():
+                self._process.kill()
+                self._process.join()
 
 
     def __del__(self):
