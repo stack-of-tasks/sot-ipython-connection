@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Dict
 from multiprocessing import Process
 
@@ -5,7 +6,7 @@ from ipykernel.kernelapp import launch_new_instance
 
 from sot_ipython_connection.connection_config import connection_config
 from sot_ipython_connection.kernel_namespace_config import kernel_namespace
-
+from sot_ipython_connection.sot_client import SOTClient
 
 class SOTKernel:
     """ A configurable ipython kernel to work with the Stack of Tasks. """
@@ -50,7 +51,6 @@ class SOTKernel:
             signature_scheme = self._connectionConfig.get("signature_scheme")
         )
 
-
     def run_non_blocking(self) -> None:
         """ Launches a new instance of a kernel, with the configured
             namespace and ports, in a subprocess. This subprocess is terminated
@@ -69,23 +69,33 @@ class SOTKernel:
         self._process = Process(target=self.run, daemon=True, name='sotkernel')
         self._process.start()
 
+        # Waiting for the process to start:
+        while not self._process.is_alive():
+            sleep(0.001)
+
+        # Waiting for the kernel's ports to open:
+        local_client = SOTClient()
+        while not local_client.connect_to_kernel():
+            sleep(0.001)
+        del local_client
+
+
+    def stop_non_blocking(self):
+        """ Terminates the subprocess in which the kernel is running, if any. """
+        if self._subprocess_kernel_is_running():
+            self._terminate_kernel_subprocess()
+
 
     def _terminate_kernel_subprocess(self) -> None:
-        for _ in range(5):
-            if self._process.is_alive():
-                self._process.terminate()
-                self._process.join()
-            else:
-                break
+        """ Terminates the subprocess in which the kernel is running. """
         if self._process.is_alive():
-            for _ in range(5):
-                if self._process.is_alive():
-                    self._process.kill()
-                    self._process.join()
-                else:
-                    break
+            self._process.terminate()
+            self._process.join()
+            if self._process.is_alive():
+                self._process.kill()
+                self._process.join()
 
-
+        
     def _subprocess_kernel_is_running(self) -> bool:
         """ Returns True if there is an instance of this kernel currently running
             in another process.
@@ -98,6 +108,4 @@ class SOTKernel:
 
 
     def __del__(self):
-        # Terminating the subprocess in which the kernel is running, if any:
-        if self._subprocess_kernel_is_running():
-            self._terminate_kernel_subprocess()
+        self.stop_non_blocking()

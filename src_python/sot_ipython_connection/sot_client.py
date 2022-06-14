@@ -211,10 +211,10 @@ class SOTClient():
             a ConnectionError if it doesn't.
         """
         # Waiting for the connection to finish if it's new:
-        for _ in range(4):
+        for _ in range(5):
             if self.is_kernel_alive():
                 break
-            sleep(0.5)
+            sleep(0.1)
 
         # It the connection is still not working:
         if not self.is_kernel_alive():
