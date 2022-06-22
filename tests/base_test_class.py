@@ -13,7 +13,6 @@ input_scripts_dir = str(Path(__file__).resolve().parent/'input_scripts')
     If a SOTKernel is already running, another cannot be launched because it would
     use the same ports (this is expected behavior).
 
-    First bug:
     When running these tests when a SOTKernel is already running, it should fail because
     this class launches its own SOTKernel. But the tests are run anyway because the exception
     when launching the kernel is ignored, and each test class launches a client that
