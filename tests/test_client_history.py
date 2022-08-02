@@ -78,13 +78,3 @@ class TestClientHistory(BaseTestClass):
         assert kernel_client.cmd_history[1].stderr == None
 
         assert kernel_client.cmd_history[1].id != kernel_client.cmd_history[0].id
-        
-
-    def test_several_sessions(self):
-        ... # TODO
-        
-
-    def test_self_history(self):
-        ...
-        # TODO: compare history and self history after several clients
-        # have sent commands
