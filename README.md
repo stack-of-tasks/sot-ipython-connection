@@ -1,29 +1,45 @@
 # sot_ipython_connection
 
-## Usage
+The purpose of this package is to implement a flexible connection between the Stack of Tasks and a client controlling it.
+sot-ipython-connection makes the entire python language available to the user in order to communicate with the SoT.
 
-#### Launching the kernel
-```bash
-python3 ./ipythonKernel.py
-```
+### Install
+TODO
 
-#### Launching a terminal-based client
-```bash
-jupyter console --existing
-```
-Warning: using `ipython` instead of `jupyter` will result in the `--existing` option being ignored and the client being launched with its own new kernel, in the same process.
+### Overview
+sot-ipython-connection has two main parts: SOTKernel and SOTClient, which are based on the ipython kernel and client and implement functionalities specific to the use of the SoT.
 
-#### Launching a Qt Console
-```bash
-ipython3 qtconsole --existing
-```
-Warning: using `jupyter` instead of `ipython` will result in errors at launch.
+The kernel is a python interpreter which will be running on the robot processor, and which will contain the SoT. One or several clients can be run on separate computers, to allow users to handle the robot.
 
-#### Connecting a client to a specific kernel
-These last two commands will connect the clients to the latest kernel. To connect to a specific kernel, you can specify the name (or path) of its connection file (kernel-<number>.json) after `--existing`, as such:
-```bash
-jupyter console --existing kernel-73809.json
-```
 
-#### Configuring the kernel
-You can also create .py or .ipy files in the IPython startup directory. These files will be run as IPython starts, in lexicographical order.
+### Executables
+Two executables are made available in this package: sot-interpreter and sot-script-executer.
+
+#### sot_interpreter
+This is the kernel to run on the robot’s processor. To launch it, use the following command:
+
+`python3 ./sot_interpreter`
+
+![](https://github.com/justinefricou/sot-ipython-connection/blob/main/doc/img/kernel.png)
+
+Figure 1: sot-interpreter running
+
+To interact with it, you have to use a client.
+To launch a terminal-based client that will connect with this kernel, use the following command, after launching the kernel:
+
+`jupyter console --existing`
+
+The --existing option means that the client will connect to the latest running kernel. In the case of sot_interpreter, there can be only one running at a time on the same computer, as several sot_interpreters would use the same ports.
+
+![](https://github.com/justinefricou/sot-ipython-connection/blob/main/doc/img/client.png)
+
+Figure 2: Example of interactions with a jupyter console
+
+#### sot_script_executer
+This is a client that allows the user to execute python scripts on the kernel:
+
+`python3 ./sot_script_executer pathToScript1 [pathToScript2] [--local]`
+
+If you wish to execute several scripts, add them to the command in the order you want them to be executed. For instance, in the above command, script1 will be executed before script2.
+
+Use the –local option if the scripts to execute are located on the same machine as the client. Otherwise, they will be considered to be on the same machine as the kernel.
